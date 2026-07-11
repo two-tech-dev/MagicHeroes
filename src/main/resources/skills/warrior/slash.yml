@@ -1,0 +1,15 @@
+id: slash
+display-name: "&cSlash"
+description: "Deal damage to target."
+cost:
+  mana: 10
+cooldown-ms: 1000
+range: 5
+target: SINGLE_ENTITY
+damage-type: MELEE
+power: 12
+mechanics:
+  - DAMAGE
+requirements:
+  level: 1
+  class: warrior

@@ -1,0 +1,8 @@
+# MagicHeroes Configuration File
+prefix: "&#4100FF&l[&#5000FF&lM&#5E00FF&la&#6D00FF&lg&#7C00FF&li&#8A00FF&lc&#9900FF&lH&#A800FF&le&#B600FF&lr&#C500FF&lo&#D400FF&le&#E200FF&ls&#F100FF&l] "
+
+# ActionBar Display Settings
+actionbar:
+  enable: true
+  update-interval: 20  # ticks (20 ticks = 1 second)
+  format: "HP: {current_hp}/{max_hp} | Mana: {current_mana}/{max_mana} | Defense: {defense} | Kills: {kills}"

@@ -1,0 +1,75 @@
+name: MagicHeroes
+version: '${version}'
+main: twotech.plugin.magicHeroes.MagicHeroes
+api-version: '1.21'
+
+commands:
+  magicheroes:
+    description: MagicHeroes command
+    usage: /magicheroes <subcommand>
+    aliases: [mh]
+    permission: magicheroes.user
+
+permissions:
+  magicheroes.user:
+    description: Use player-facing MagicHeroes commands.
+    default: true
+  magicheroes.admin:
+    description: All MagicHeroes administration permissions.
+    default: op
+    children:
+      magicheroes.reload: true
+      magicheroes.item.create: true
+      magicheroes.item.give: true
+      magicheroes.item.edit: true
+      magicheroes.item.validate: true
+      magicheroes.item.reload: true
+      magicheroes.item.inspect: true
+      magicheroes.class.admin: true
+      magicheroes.level.admin: true
+      magicheroes.debug: true
+      magicheroes.bypass.requirements: true
+      magicheroes.bypass.cooldown: true
+      magicheroes.bypass.soulbound: true
+  magicheroes.reload:
+    description: Reload MagicHeroes configuration.
+    default: op
+  magicheroes.item.create:
+    description: Create MagicHeroes item templates.
+    default: op
+  magicheroes.item.give:
+    description: Give MagicHeroes items.
+    default: op
+  magicheroes.item.edit:
+    description: Edit held items through MagicHeroes.
+    default: op
+  magicheroes.item.validate:
+    description: Validate MagicHeroes item templates.
+    default: op
+  magicheroes.item.reload:
+    description: Reload MagicHeroes item templates.
+    default: op
+  magicheroes.item.inspect:
+    description: Inspect a held MagicHeroes item.
+    default: op
+  magicheroes.class.admin:
+    description: Change player class and level.
+    default: op
+  magicheroes.level.admin:
+    description: Manage player experience and level.
+    default: op
+  magicheroes.skill.admin:
+    description: Manage player skills and skill trees.
+    default: op
+  magicheroes.debug:
+    description: View MagicHeroes diagnostics.
+    default: op
+  magicheroes.bypass.requirements:
+    description: Bypass item requirements.
+    default: false
+  magicheroes.bypass.cooldown:
+    description: Bypass skill cooldowns.
+    default: false
+  magicheroes.bypass.soulbound:
+    description: Bypass soulbound restrictions.
+    default: false

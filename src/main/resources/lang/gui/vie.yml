@@ -1,0 +1,70 @@
+# MagicHeroes Plugin - Vietnamese GUI Language File
+# Tất cả tin nhắn hỗ trợ mã màu & và mã màu hex &#ffffff
+
+# Tin nhắn GUI chung
+no-item-error: "&cBạn phải cầm một vật phẩm trên tay để mở GUI chỉnh sửa!"
+no-item-dropped: "&cBạn không còn cầm vật phẩm trên tay!"
+
+# Main GUI
+main-title: "&b&l[Chỉnh sửa vật phẩm]"
+
+# Các nút GUI chính
+rename-button: "&e&l[Đổi tên vật phẩm]"
+rename-lore-1: "&7Click để thay đổi tên"
+rename-lore-2: "&8Hỗ trợ &mã màu &7và &#hex"
+
+lore-button: "&c&l[Thay đổi mô tả]"
+lore-lore-1: "&7Click để chỉnh sửa dòng lore"
+lore-lore-2: "&8Dùng | để xuống dòng"
+
+enchant-button: "&5&l[Quản lý phù phép]"
+enchant-lore-1: "&7Click để mở GUI phù phép"
+enchant-lore-2: "&8Thêm hoặc xóa phù phép an toàn"
+
+durability-button: "&a&l[Quản lý độ bền]"
+durability-lore-1: "&7Click để mở GUI độ bền"
+durability-lore-2: "&8Thiết lập, kiểm tra hoặc sửa độ bền vật phẩm"
+
+tooltip-button: "&d&l[Quản lý mẫu Tooltip]"
+tooltip-lore-1: "&7Click để chọn mẫu Tooltip"
+tooltip-lore-2: "&8Tùy chỉnh giao diện vật phẩm"
+
+back-button: "&c&l[Quay lại]"
+back-lore: "&7Click để quay lại menu chính"
+
+# GUI phù phép
+enchant-title: "&5&l[Quản lý phù phép]"
+enchant-left: "&7Click trái: &aThêm phù phép"
+enchant-right: "&7Click phải: &cXóa phù phép"
+enchant-id: "&8ID: {enchantment}"
+enchant-added: "&a[+] Đã thêm phù phép &e{enchantment} &a(Cấp {level})"
+enchant-removed: "&c[-] Đã xóa phù phép &e{enchantment}"
+enchant-not-exist: "&cVật phẩm không có phù phép &e{enchantment}"
+
+# GUI độ bền
+durability-title: "&a&l[Quản lý độ bền]"
+
+durability-set-button: "&e&l[Thiết lập độ bền]"
+durability-set-lore-1: "&7Click để thiết lập độ bền tùy chỉnh"
+durability-set-lore-2: "&8Nhập: &fhiện_tại tối_đa"
+durability-set-lore-3: "&8Ví dụ: &f100 100"
+
+durability-infinite-button: "&b&l[Thiết lập vô hạn]"
+durability-infinite-lore-1: "&7Click để thiết lập độ bền vô hạn"
+durability-infinite-lore-2: "&8Vật phẩm sẽ không bao giờ hỏng"
+
+durability-check-button: "&6&l[Kiểm tra độ bền]"
+durability-check-lore-1: "&7Click để kiểm tra độ bền hiện tại"
+durability-check-lore-2: "&8Xem giá trị hiện tại/tối đa"
+
+durability-reset-button: "&c&l[Đặt lại độ bền]"
+durability-reset-lore-1: "&7Click để xóa độ bền tùy chỉnh"
+durability-reset-lore-2: "&8Khôi phục về độ bền Minecraft mặc định"
+
+durability-current-info: "&eĐộ bền hiện tại:"
+durability-current-value: "&f{current}/{max}"
+durability-current-infinite: "&b&lVô Hạn"
+durability-current-none: "&7Chưa thiết lập độ bền tùy chỉnh"
+
+# Tooltip GUI
+tooltip-title: "&d&l[Mẫu Tooltip]"

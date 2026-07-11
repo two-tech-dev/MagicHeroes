@@ -1,0 +1,98 @@
+# MagicHeroes Plugin - Vietnamese Language File
+# Tất cả tin nhắn hỗ trợ mã màu & và mã màu hex &#ffffff
+
+# Tin nhắn chung
+general:
+  player-only: "&cYêu cầu này chỉ có thể được thực hiện bởi người chơi!"
+  no-item: "&cBạn phải cầm một vật phẩm trên tay!"
+  no-meta: "&cKhông thể lấy thông tin metadata của vật phẩm!"
+  reload-success: "&aĐã tải lại cấu hình plugin thành công!"
+
+# Trợ giúp lệnh
+help:
+  header: "&6&m═══════════════════════════════════════"
+  title: "&b&lMagicHeroes &7- Trợ giúp lệnh"
+  footer: "&6&m═══════════════════════════════════════"
+  gui: "&e/mh gui"
+  gui-desc: "&7  Mở giao diện GUI chỉnh sửa vật phẩm nhanh"
+  rename: "&e/mh rename <tên>"
+  rename-desc: "&7  Đổi tên vật phẩm. Hỗ trợ &màu và &#hex"
+  setlore: "&e/mh setlore <dòng1>|<dòng2>..."
+  setlore-desc: "&7  Đổi mô tả item. Dùng | để xuống dòng"
+  addenchant: "&e/mh addenchant <phù_phép> <cấp>"
+  addenchant-desc: "&7  Thêm phù phép (cho phép vượt cấp độ an toàn)"
+  removeenchant: "&e/mh removeenchant <phù_phép>"
+  removeenchant-desc: "&7  Xóa phù phép khỏi vật phẩm"
+  language: "&e/mh language <mã>"
+  language-desc: "&7  Thay đổi ngôn ngữ (en/vie)"
+  reload: "&e/mh reload"
+  reload-desc: "&7  Tải lại cấu hình plugin"
+  durability: "&e/mh durability <set|infinite|check|reset>"
+  durability-desc: "&7  Quản lý độ bền tùy chỉnh của vật phẩm"
+  settooltip: "&e/mh settooltip <mẫu>"
+  settooltip-desc: "&7  Thiết lập mẫu tooltip cho vật phẩm"
+  example: "&7Ví dụ màu: &a&l/mh rename &b&#ff0000&lVật Phẩm Đỏ"
+
+# Lệnh Rename
+rename:
+  usage: "&cCách sử dụng: /mh rename <tên mới>"
+  success: "&aĐã đổi tên vật phẩm thành công!"
+
+# Lệnh Lore
+lore:
+  usage: "&cCách sử dụng: /mh setlore <dòng1>|<dòng2>|<dòng3>..."
+  success: "&aĐã thay đổi mô tả (Lore) vật phẩm thành công!"
+
+# Lệnh Enchantment
+enchant:
+  add-usage: "&cCách sử dụng: /mh addenchant <tên_phù_phép> <cấp_độ>"
+  remove-usage: "&cCách sử dụng: /mh removeenchant <tên_phù_phép>"
+  level-positive: "&cCấp độ phù phép phải lớn hơn 0!"
+  level-invalid: "&cCấp độ phải là một số!"
+  not-found: "&cKhông tìm thấy phù phép: &e{enchantment}"
+  hint: "&7Gợi ý: hãy dùng tên tiếng Anh như: sharpness, unbreaking, knockback, ..."
+  add-success: "&aĐã thêm phù phép &e{enchantment} &avào vật phẩm (Cấp độ: {level})"
+  remove-not-found: "&cVật phẩm hiện tại không có phù phép &e{enchantment}"
+  remove-success: "&aĐã xóa phù phép &e{enchantment} &akhỏi vật phẩm"
+
+
+# Tin nhắn nhập từ chat
+input:
+  rename-prompt: "&e[ĐỔI TÊN] Nhập tên mới cho vật phẩm (hoặc gõ 'cancel' để hủy):"
+  rename-hint: "&7Hỗ trợ mã màu & và &#hex"
+  lore-prompt: "&c[MÔ TẢ] Nhập lore mới (dùng | để xuống dòng, 'cancel' để hủy):"
+  cancel: "&cĐã hủy thao tác."
+
+# Lệnh Language
+language:
+  usage: "&cCách sử dụng: /mh language <mã_ngôn_ngữ>"
+  current: "&aNgôn ngữ hiện tại: &e{language}"
+  changed: "&aĐã thay đổi ngôn ngữ sang: &e{language}"
+  invalid: "&cMã ngôn ngữ không hợp lệ: &e{code}"
+  available: "&7Ngôn ngữ khả dụng: &e{languages}"
+
+# Tin nhắn độ bền
+durability:
+  infinite: "&b&lVô Hạn"
+  lore-format: "&7Độ bền: &f{current}/{max}"
+  broken-warning: "&c&l[HỎNG] &cTrang bị {item} đã bị hỏng!"
+  broken-lore: "&c&l[HỎNG]"
+  
+  # Các lệnh độ bền
+  usage: "&cCách sử dụng: /mh durability <set|infinite|check|reset>"
+  set-usage: "&cCách sử dụng: /mh durability set <hiện_tại> <tối_đa>"
+  set-success: "&aĐã thiết lập độ bền vật phẩm thành &e{current}/{max}"
+  infinite-success: "&aĐã thiết lập độ bền vật phẩm thành &b&lVô Hạn"
+  check: "&eĐộ bền hiện tại: &f{current}/{max}"
+  check-infinite: "&eĐộ bền hiện tại: &b&lVô Hạn"
+  no-durability: "&cVật phẩm này không có độ bền tùy chỉnh!"
+  reset-success: "&aĐã xóa độ bền tùy chỉnh khỏi vật phẩm"
+  invalid-number: "&cSố không hợp lệ: &e{value}"
+  max-positive: "&cĐộ bền tối đa phải lớn hơn 0 hoặc -1 để đặt thành vô hạn!"
+
+
+# Lệnh Tooltip
+tooltip:
+  set-usage: "&cCách sử dụng: /mh settooltip <mẫu>"
+  not-found: "&cKhông tìm thấy mẫu tooltip: &e{template}"
+  set-success: "&aĐã thiết lập mẫu tooltip: &e{template}"

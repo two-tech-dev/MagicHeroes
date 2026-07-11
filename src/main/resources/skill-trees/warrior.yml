@@ -1,0 +1,6 @@
+class: warrior
+nodes:
+  slash:
+    skill: slash
+    max-level: 1
+    cost: 1

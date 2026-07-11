@@ -1,0 +1,13 @@
+item-gui: "name_tag"
+tooltip-name: "DEFAULT TOOLTIP"
+display-format:
+  - "<yellow><bold>%name%</yellow></bold>"
+  - "<gray>Damage: <red>%damage%</red></gray>"
+  - "<gray>Defense: <blue>%defense%</blue></gray>"
+  - "<gray>Mana: <aqua>%mana%</aqua></gray>"
+  - "<gray>Health: <green>%health%</green></gray>"
+  - "<gray>Attack Speed: <yellow>%attack_speed%</yellow></gray>"
+  - "<gray>Durability: %durability%</gray>"
+  - "<gray>Requirements:</gray>"
+  - "  <gray>Level: <gold>%level_req%</gold></gray>"
+  - "  <gray>Class: <purple>%class_req%</purple></gray>"

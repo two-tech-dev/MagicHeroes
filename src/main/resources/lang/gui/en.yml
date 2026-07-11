@@ -1,0 +1,70 @@
+# MagicHeroes Plugin - English GUI Language File
+# All messages support & color codes and &#hex color codes
+
+# General GUI messages
+no-item-error: "&cYou must be holding an item to open the editing GUI!"
+no-item-dropped: "&cYou are no longer holding an item!"
+
+# Main GUI
+main-title: "&b&l[Item Editor]"
+
+# Main GUI buttons
+rename-button: "&e&l[Rename Item]"
+rename-lore-1: "&7Click to change name"
+rename-lore-2: "&8Supports &color codes &7and &#hex"
+
+lore-button: "&c&l[Change Lore]"
+lore-lore-1: "&7Click to edit lore lines"
+lore-lore-2: "&8Use | for new lines"
+
+enchant-button: "&5&l[Manage Enchantments]"
+enchant-lore-1: "&7Click to open enchantment GUI"
+enchant-lore-2: "&8Add or remove enchantments safely"
+
+durability-button: "&a&l[Manage Durability]"
+durability-lore-1: "&7Click to open durability GUI"
+durability-lore-2: "&8Set, check, or modify item durability"
+
+tooltip-button: "&d&l[Manage Tooltips]"
+tooltip-lore-1: "&7Click to select a tooltip style"
+tooltip-lore-2: "&8Customize item appearance"
+
+back-button: "&c&l[Back]"
+back-lore: "&7Click to return to main menu"
+
+# Enchantment GUI
+enchant-title: "&5&l[Enchantment Manager]"
+enchant-left: "&7Left click: &aAdd enchantment"
+enchant-right: "&7Right click: &cRemove enchantment"
+enchant-id: "&8ID: {enchantment}"
+enchant-added: "&a[+] Added enchantment &e{enchantment} &a(Level {level})"
+enchant-removed: "&c[-] Removed enchantment &e{enchantment}"
+enchant-not-exist: "&cItem does not have enchantment &e{enchantment}"
+
+# Durability GUI
+durability-title: "&a&l[Durability Manager]"
+
+durability-set-button: "&e&l[Set Durability]"
+durability-set-lore-1: "&7Click to set custom durability"
+durability-set-lore-2: "&8Enter: &fcurrent max"
+durability-set-lore-3: "&8Example: &f100 100"
+
+durability-infinite-button: "&b&l[Set Infinite]"
+durability-infinite-lore-1: "&7Click to set infinite durability"
+durability-infinite-lore-2: "&8Item will never break"
+
+durability-check-button: "&6&l[Check Durability]"
+durability-check-lore-1: "&7Click to check current durability"
+durability-check-lore-2: "&8View current/max values"
+
+durability-reset-button: "&c&l[Reset Durability]"
+durability-reset-lore-1: "&7Click to remove custom durability"
+durability-reset-lore-2: "&8Restore to default Minecraft durability"
+
+durability-current-info: "&eCurrent Durability:"
+durability-current-value: "&f{current}/{max}"
+durability-current-infinite: "&b&lInfinite"
+durability-current-none: "&7No custom durability set"
+
+# Tooltip GUI
+tooltip-title: "&d&l[Tooltip Styles]"

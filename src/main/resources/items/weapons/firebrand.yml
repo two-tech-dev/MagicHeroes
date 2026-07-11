@@ -1,0 +1,16 @@
+id: firebrand
+type: sword
+material: DIAMOND_SWORD
+display-name: "&cFirebrand"
+lore:
+  - "&7A starter flame blade."
+base-stats:
+  ATTACK_DAMAGE: 25.0
+  FIRE_DAMAGE: 5.0
+  MAX_HEALTH: 10.0
+requirements:
+  level: 1
+  class: warrior
+durability:
+  max: 100
+version: 1

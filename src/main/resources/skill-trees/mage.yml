@@ -1,0 +1,6 @@
+class: mage
+nodes:
+  minor-heal:
+    skill: minor-heal
+    max-level: 1
+    cost: 1

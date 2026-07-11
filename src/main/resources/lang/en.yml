@@ -1,0 +1,98 @@
+# MagicHeroes Plugin - English Language File
+# All messages support & color codes and &#hex color codes
+
+# General messages
+general:
+  player-only: "&cThis command can only be executed by a player!"
+  no-item: "&cYou must be holding an item in your hand!"
+  no-meta: "&cCannot retrieve item metadata!"
+  reload-success: "&aPlugin configuration reloaded successfully!"
+
+# Command help
+help:
+  header: "&6&m═══════════════════════════════════════"
+  title: "&b&lMagicHeroes &7- Command Help"
+  footer: "&6&m═══════════════════════════════════════"
+  gui: "&e/mh gui"
+  gui-desc: "&7  Open GUI for quick item editing"
+  rename: "&e/mh rename <name>"
+  rename-desc: "&7  Rename item. Supports &color and &#hex"
+  setlore: "&e/mh setlore <line1>|<line2>..."
+  setlore-desc: "&7  Change item lore. Use | for new lines"
+  addenchant: "&e/mh addenchant <enchantment> <level>"
+  addenchant-desc: "&7  Add enchantment (allows unsafe levels)"
+  removeenchant: "&e/mh removeenchant <enchantment>"
+  removeenchant-desc: "&7  Remove enchantment from item"
+  language: "&e/mh language <code>"
+  language-desc: "&7  Change your language (en/vie)"
+  reload: "&e/mh reload"
+  reload-desc: "&7  Reload plugin configuration"
+  durability: "&e/mh durability <set|infinite|check|reset>"
+  durability-desc: "&7  Manage custom item durability"
+  settooltip: "&e/mh settooltip <template>"
+  settooltip-desc: "&7  Set tooltip style for item"
+  example: "&7Color example: &a&l/mh rename &b&#ff0000&lRed Item"
+
+# Rename command
+rename:
+  usage: "&cUsage: /mh rename <new name>"
+  success: "&aItem renamed successfully!"
+
+# Lore command
+lore:
+  usage: "&cUsage: /mh setlore <line1>|<line2>|<line3>..."
+  success: "&aItem lore changed successfully!"
+
+# Enchantment commands
+enchant:
+  add-usage: "&cUsage: /mh addenchant <enchantment_name> <level>"
+  remove-usage: "&cUsage: /mh removeenchant <enchantment_name>"
+  level-positive: "&cEnchantment level must be greater than 0!"
+  level-invalid: "&cLevel must be a number!"
+  not-found: "&cEnchantment not found: &e{enchantment}"
+  hint: "&7Hint: use English names like: sharpness, unbreaking, knockback, ..."
+  add-success: "&aAdded enchantment &e{enchantment} &ato item (Level: {level})"
+  remove-not-found: "&cItem does not have enchantment &e{enchantment}"
+  remove-success: "&aRemoved enchantment &e{enchantment} &afrom item"
+
+
+# Chat input messages
+input:
+  rename-prompt: "&e[RENAME] Enter new item name (or type 'cancel' to cancel):"
+  rename-hint: "&7Supports &color codes and &#hex"
+  lore-prompt: "&c[LORE] Enter new lore (use | for new lines, 'cancel' to cancel):"
+  cancel: "&cOperation cancelled."
+
+# Language command
+language:
+  usage: "&cUsage: /mh language <code>"
+  current: "&aCurrent language: &e{language}"
+  changed: "&aLanguage changed to: &e{language}"
+  invalid: "&cInvalid language code: &e{code}"
+  available: "&7Available languages: &e{languages}"
+
+# Durability messages
+durability:
+  infinite: "&b&lInfinite"
+  lore-format: "&7Durability: &f{current}/{max}"
+  broken-warning: "&c&l[BROKEN] &cYour item {item} is broken!"
+  broken-lore: "&c&l[BROKEN]"
+  
+  # Durability commands
+  usage: "&cUsage: /mh durability <set|infinite|check|reset>"
+  set-usage: "&cUsage: /mh durability set <current> <max>"
+  set-success: "&aItem durability set to &e{current}/{max}"
+  infinite-success: "&aItem durability set to &b&lInfinite"
+  check: "&eCurrent durability: &f{current}/{max}"
+  check-infinite: "&eCurrent durability: &b&lInfinite"
+  no-durability: "&cThis item does not have custom durability!"
+  reset-success: "&aCustom durability removed from item"
+  invalid-number: "&cInvalid number: &e{value}"
+  max-positive: "&cMax durability must be greater than 0 or -1 for infinite!"
+
+
+# Tooltip command
+tooltip:
+  set-usage: "&cUsage: /mh settooltip <template>"
+  not-found: "&cTooltip template not found: &e{template}"
+  set-success: "&aTooltip style set to: &e{template}"

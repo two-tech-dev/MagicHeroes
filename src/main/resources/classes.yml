@@ -1,0 +1,29 @@
+# MagicHeroes RPG Classes Configuration
+# Define base stats and scaling stats per level for each class
+
+warrior:
+  display-name: "&cWarrior"
+  base-hp: 200.0
+  hp-per-level: 25.0
+  base-mana: 50.0
+  mana-per-level: 5.0
+  base-defense: 20.0
+  defense-per-level: 3.0
+
+mage:
+  display-name: "&bMage"
+  base-hp: 120.0
+  hp-per-level: 15.0
+  base-mana: 200.0
+  mana-per-level: 25.0
+  base-defense: 5.0
+  defense-per-level: 1.0
+
+archer:
+  display-name: "&aArcher"
+  base-hp: 150.0
+  hp-per-level: 18.0
+  base-mana: 80.0
+  mana-per-level: 10.0
+  base-defense: 10.0
+  defense-per-level: 2.0

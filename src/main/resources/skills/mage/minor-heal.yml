@@ -1,0 +1,13 @@
+id: minor-heal
+display-name: "&bMinor Heal"
+description: "Restore health."
+cost:
+  mana: 15
+cooldown-ms: 3000
+target: SELF
+power: 10
+mechanics:
+  - HEAL
+requirements:
+  level: 1
+  class: mage
