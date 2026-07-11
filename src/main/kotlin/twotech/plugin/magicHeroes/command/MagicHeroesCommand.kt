@@ -49,7 +49,7 @@ class MagicHeroesCommand(
         CommandSpec("removeenchant", "magicheroes.item.edit", true),
         CommandSpec("durability", "magicheroes.item.edit", true),
         CommandSpec("settooltip", "magicheroes.item.edit", true),
-        CommandSpec("item", "magicheroes.item.inspect", false),
+        CommandSpec("item", "magicheroes.user", false),
         CommandSpec("reload", "magicheroes.reload", false),
         CommandSpec("class", "magicheroes.class.admin", false),
         CommandSpec("debug", "magicheroes.debug", false)
@@ -117,6 +117,20 @@ class MagicHeroesCommand(
                 }
                 sender.sendMessage(Component.text("Gave $amount $id to ${target.name}."))
             }
+            "craft" -> {
+                val id = args.getOrNull(2)
+                if (player == null || id == null || !plugin.itemService.craft(player, id)) sender.sendMessage(Component.text("Usage: /mh item craft <recipe-id>"))
+                else sender.sendMessage(Component.text("Craft completed."))
+            }
+            "loot" -> {
+                val id = args.getOrNull(2)
+                if (player == null || id == null) sender.sendMessage(Component.text("Usage: /mh item loot <table-id>"))
+                else {
+                    val drops = plugin.itemService.rollLoot(id)
+                    if (drops.isEmpty()) sender.sendMessage(Component.text("No loot table or drops."))
+                    else drops.forEach { (itemId, amount) -> plugin.itemService.give(player, itemId, amount) }
+                }
+            }
             "inspect" -> {
                 if (player == null) {
                     sender.sendMessage(Component.text("Item inspection requires an in-game player."))
@@ -126,7 +140,7 @@ class MagicHeroesCommand(
                 val identity = service.inspect(player.inventory.itemInMainHand)
                 sender.sendMessage(Component.text(identity?.let { "${it.id} (${it.type}, v${it.templateVersion})" } ?: "Held item has no MagicHeroes identity."))
             }
-            else -> sender.sendMessage(Component.text("Usage: /mh item <give|inspect|validate|reload> ..."))
+            else -> sender.sendMessage(Component.text("Usage: /mh item <give|inspect|validate|reload|craft|loot> ..."))
         }
     }
 
@@ -289,7 +303,12 @@ class MagicHeroesCommand(
         if (args.size == 1) return commands.filter { sender.hasPermission(it.permission) }.map { it.name }.filter { it.startsWith(args[0], true) }
         if (args[0].equals("item", true)) return when (args.size) {
             2 -> complete(args, 1, itemActions(sender))
-            3 -> if (args[1].equals("give", true) && sender.hasPermission("magicheroes.item.give")) complete(args, 2, Bukkit.getOnlinePlayers().map(Player::getName)) else emptyList()
+            3 -> when {
+                args[1].equals("give", true) && sender.hasPermission("magicheroes.item.give") -> complete(args, 2, Bukkit.getOnlinePlayers().map(Player::getName))
+                args[1].equals("craft", true) -> complete(args, 2, listOf("firebrand"))
+                args[1].equals("loot", true) -> complete(args, 2, listOf("firebrand"))
+                else -> emptyList()
+            }
             4 -> if (args[1].equals("give", true) && sender.hasPermission("magicheroes.item.give")) complete(args, 3, plugin.itemService.templates().map { it.id }) else emptyList()
             else -> emptyList()
         }
@@ -329,6 +348,10 @@ class MagicHeroesCommand(
         if (sender.hasPermission("magicheroes.item.inspect")) add("inspect")
         if (sender.hasPermission("magicheroes.item.validate")) add("validate")
         if (sender.hasPermission("magicheroes.item.reload")) add("reload")
+        if (sender.hasPermission("magicheroes.user")) {
+            add("craft")
+            add("loot")
+        }
     }
 
     private fun complete(args: Array<out String>, index: Int, options: Collection<String>): List<String> =

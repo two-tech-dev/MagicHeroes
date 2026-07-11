@@ -68,7 +68,7 @@ class MagicHeroes : JavaPlugin() {
         server.pluginManager.registerEvents(GUIClickListener(), this)
         server.pluginManager.registerEvents(ChatInputListener(this), this)
         server.pluginManager.registerEvents(PlayerEventListener(this, resources, skillService), this)
-        server.pluginManager.registerEvents(EquipmentEventListener(this, resources, itemService.requirements), this)
+        server.pluginManager.registerEvents(EquipmentEventListener(this, resources, itemService.requirements, itemService.advance), this)
         server.pluginManager.registerEvents(DamageEventListener(combatService), this)
         server.pluginManager.registerEvents(CombatLifecycleListener(), this)
         server.pluginManager.registerEvents(DurabilityEventListener(this), this)

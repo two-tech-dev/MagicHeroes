@@ -68,7 +68,10 @@ class ItemRegistry(private val itemsDirectory: Path) {
             classRequirement = config.getString("requirements.class")?.trim()?.lowercase(),
             version = config.getInt("version", 1).coerceAtLeast(1),
             maxDurability = maxDurability,
-            infiniteDurability = config.getBoolean("durability.infinite", false)
+            infiniteDurability = config.getBoolean("durability.infinite", false),
+            tier = config.getString("tier", "COMMON")?.uppercase() ?: "COMMON",
+            setId = config.getString("set")?.lowercase(),
+            socketCount = config.getInt("sockets", 0).coerceIn(0, 6)
         )
     }
 }

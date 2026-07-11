@@ -26,6 +26,9 @@ class ItemIdentityService(private val plugin: JavaPlugin) {
         pdc.set(keys.name, PersistentDataType.STRING, template.displayName)
         if (template.levelRequirement > 0) pdc.set(keys.levelRequirement, PersistentDataType.INTEGER, template.levelRequirement)
         template.classRequirement?.let { pdc.set(keys.classRequirement, PersistentDataType.STRING, it) }
+        pdc.set(keys.tier, PersistentDataType.STRING, template.tier)
+        template.setId?.let { pdc.set(keys.setId, PersistentDataType.STRING, it) }
+        if (template.socketCount > 0) pdc.set(keys.socketCount, PersistentDataType.INTEGER, template.socketCount)
         item.itemMeta = meta
         template.maxDurability?.let { DurabilityManager.get()?.setDurability(item, it, it) }
         if (template.infiniteDurability) DurabilityManager.get()?.setInfiniteDurability(item)

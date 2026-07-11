@@ -11,5 +11,8 @@ data class ItemTemplate(
     val classRequirement: String? = null,
     val version: Int = 1,
     val maxDurability: Int? = null,
-    val infiniteDurability: Boolean = false
+    val infiniteDurability: Boolean = false,
+    val tier: String = "COMMON",
+    val setId: String? = null,
+    val socketCount: Int = 0
 )

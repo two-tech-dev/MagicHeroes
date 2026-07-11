@@ -26,6 +26,11 @@ class PdcKeys(plugin: JavaPlugin) {
     val soulboundOwner = NamespacedKey(plugin, "soulbound_owner")
     val tooltipTemplate = NamespacedKey(plugin, "mh_tooltip_template")
     val buttonType = NamespacedKey(plugin, "button_type")
+    val tier = NamespacedKey(plugin, "item_tier")
+    val setId = NamespacedKey(plugin, "item_set")
+    val socketCount = NamespacedKey(plugin, "socket_count")
+    val sockets = NamespacedKey(plugin, "sockets")
+    val reforgeSeed = NamespacedKey(plugin, "reforge_seed")
 
     fun stat(id: String): NamespacedKey = NamespacedKey(plugin, "stat_${id.lowercase()}")
 }

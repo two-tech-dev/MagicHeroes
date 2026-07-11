@@ -1,0 +1,8 @@
+id: firebrand
+result: firebrand
+amount: 1
+station: anvil
+success-chance: 1.0
+ingredients:
+  blaze_powder: 2
+  diamond_sword: 1
