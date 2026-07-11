@@ -9,6 +9,11 @@ import twotech.plugin.magicHeroes.combat.CombatService
 class DamageEventListener(private val combat: CombatService) : Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun onEntityDamage(event: EntityDamageEvent) {
+        val external = combat.consumeExternalContext(event.entity.uniqueId)
+        if (external != null) {
+            event.damage = external.finalDamage
+            return
+        }
         combat.apply(event)
     }
 }

@@ -31,6 +31,9 @@ class YamlPlayerStorage(private val dataDirectory: Path) {
             skillTreeLevels = configuration.getConfigurationSection("skill-tree")?.getKeys(false)?.associateWith { key ->
                 configuration.getInt("skill-tree.$key", 0).coerceAtLeast(0)
             }.orEmpty(),
+            questProgress = parseQuestProgress(configuration.getStringList("quests.progress")),
+            completedQuests = configuration.getStringList("quests.completed").toSet(),
+            discoveredWaypoints = configuration.getStringList("waypoints.discovered").toSet(),
             maxMana = configuration.getDouble("base.maxMana", 100.0).coerceAtLeast(0.0),
             baseDefense = configuration.getDouble("base.defense", 0.0).coerceAtLeast(0.0),
             baseHealthRegen = configuration.getDouble("base.healthRegen", 0.5).coerceAtLeast(0.0),
@@ -66,10 +69,23 @@ class YamlPlayerStorage(private val dataDirectory: Path) {
         configuration.set("skills.unlocked", snapshot.unlockedSkills.toList())
         snapshot.skillBindings.forEach { (slot, id) -> configuration.set("skills.bindings.$slot", id) }
         snapshot.skillTreeLevels.forEach { (id, level) -> configuration.set("skill-tree.$id", level) }
+        configuration.set("quests.progress", serializeQuestProgress(snapshot.questProgress))
+        configuration.set("quests.completed", snapshot.completedQuests.toList())
+        configuration.set("waypoints.discovered", snapshot.discoveredWaypoints.toList())
         configuration.set("class.level", snapshot.level)
         configuration.set("class.exp", snapshot.experience)
         atomicSave(configuration, target)
     }
+
+    private fun parseQuestProgress(lines: List<String>): Map<String, Map<String, Int>> = lines.mapNotNull { line ->
+        val parts = line.split('|', limit = 3)
+        if (parts.size != 3) return@mapNotNull null
+        val value = parts[2].toIntOrNull() ?: return@mapNotNull null
+        parts[0] to (parts[1] to value)
+    }.groupBy({ it.first }, { it.second }).mapValues { (_, values) -> values.toMap() }
+
+    private fun serializeQuestProgress(progress: Map<String, Map<String, Int>>): List<String> =
+        progress.flatMap { (quest, objectives) -> objectives.map { (objective, value) -> "$quest|$objective|$value" } }
 
     private fun atomicSave(configuration: YamlConfiguration, target: Path) {
         val temporary = Files.createTempFile(dataDirectory, target.fileName.toString(), ".tmp")

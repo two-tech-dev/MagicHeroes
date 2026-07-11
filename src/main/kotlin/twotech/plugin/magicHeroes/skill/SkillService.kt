@@ -23,6 +23,8 @@ class SkillService(private val plugin: JavaPlugin, combat: CombatService) {
 
     fun reload(): List<String> = registry.reload() + trees.reload()
     fun ids(): Set<String> = registry.ids()
+    fun register(skill: Skill): Boolean = registry.register(skill)
+    fun unregister(id: String): Boolean = registry.unregister(id)
 
     fun bind(player: Player, slot: Int, id: String): Boolean {
         val data = HeroPlayerManager.get()?.getPlayerData(player.uniqueId) ?: return false

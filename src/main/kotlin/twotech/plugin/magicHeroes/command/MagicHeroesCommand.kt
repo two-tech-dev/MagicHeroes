@@ -8,12 +8,13 @@ import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
 import org.bukkit.entity.Player
 import twotech.plugin.magicHeroes.MagicHeroes
+import twotech.plugin.magicHeroes.attribute.AttributeService
+import twotech.plugin.magicHeroes.attribute.AttributeType
 import twotech.plugin.magicHeroes.calculator.StatCalculator
 import twotech.plugin.magicHeroes.data.ResourceService
 import twotech.plugin.magicHeroes.handler.DurabilityHandler
 import twotech.plugin.magicHeroes.handler.EnchantmentHandler
 import twotech.plugin.magicHeroes.handler.GUIHandler
-import twotech.plugin.magicHeroes.handler.LanguageHandler
 import twotech.plugin.magicHeroes.handler.LoreHandler
 import twotech.plugin.magicHeroes.handler.RenameHandler
 import twotech.plugin.magicHeroes.handler.SetTooltipHandler
@@ -21,16 +22,20 @@ import twotech.plugin.magicHeroes.manager.ClassManager
 import twotech.plugin.magicHeroes.manager.HeroPlayerManager
 import twotech.plugin.magicHeroes.manager.LanguageManager
 import twotech.plugin.magicHeroes.manager.TooltipManager
-import twotech.plugin.magicHeroes.attribute.AttributeService
-import twotech.plugin.magicHeroes.attribute.AttributeType
+import twotech.plugin.magicHeroes.party.PartyService
+import twotech.plugin.magicHeroes.quest.QuestService
 import twotech.plugin.magicHeroes.skill.SkillCastResult
 import twotech.plugin.magicHeroes.skill.SkillService
+import twotech.plugin.magicHeroes.waypoint.WaypointService
 
 class MagicHeroesCommand(
     private val plugin: MagicHeroes,
     private val resources: ResourceService,
     private val attributes: AttributeService,
-    private val skills: SkillService
+    private val skills: SkillService,
+    private val quests: QuestService,
+    private val parties: PartyService,
+    private val waypoints: WaypointService
 ) : CommandExecutor, TabCompleter {
     private data class CommandSpec(val name: String, val permission: String, val playerOnly: Boolean)
 
@@ -41,6 +46,10 @@ class MagicHeroesCommand(
         CommandSpec("attributes", "magicheroes.user", true),
         CommandSpec("skills", "magicheroes.user", true),
         CommandSpec("skill", "magicheroes.user", true),
+        CommandSpec("quests", "magicheroes.user", true),
+        CommandSpec("quest", "magicheroes.user", true),
+        CommandSpec("party", "magicheroes.user", true),
+        CommandSpec("waypoint", "magicheroes.user", true),
         CommandSpec("level", "magicheroes.level.admin", false),
         CommandSpec("gui", "magicheroes.item.edit", true),
         CommandSpec("rename", "magicheroes.item.edit", true),
@@ -61,10 +70,7 @@ class MagicHeroesCommand(
             sender.sendMessage(Component.text("Unknown subcommand: ${args[0]}"))
             return sendHelp(sender)
         }
-        if (!sender.hasPermission(spec.permission)) {
-            sender.sendMessage(Component.text("You do not have permission: ${spec.permission}"))
-            return true
-        }
+        if (!sender.hasPermission(spec.permission)) return deny(sender, spec.permission)
         val player = sender as? Player
         if (spec.playerOnly && player == null) {
             sender.sendMessage(Component.text("This subcommand requires an in-game player."))
@@ -72,12 +78,17 @@ class MagicHeroesCommand(
         }
         when (spec.name) {
             "help" -> sendHelp(sender)
-            "language" -> LanguageHandler.execute(player!!, args)
+            "language" -> handleLanguage(player!!, args)
             "stats" -> showStats(player!!)
             "attributes" -> handleAttributes(player!!, args)
             "skills" -> showSkills(player!!)
             "skill" -> handleSkill(player!!, args)
+            "quests" -> showQuests(player!!)
+            "quest" -> handleQuest(player!!, args)
+            "party" -> handleParty(player!!, args)
+            "waypoint" -> handleWaypoint(player!!, args)
             "level" -> handleLevel(sender, args)
+            "item" -> handleItem(sender, player, args)
             "gui" -> GUIHandler.execute(player!!, args)
             "rename" -> RenameHandler.execute(player!!, args)
             "setlore" -> LoreHandler.execute(player!!, args)
@@ -85,7 +96,6 @@ class MagicHeroesCommand(
             "removeenchant" -> EnchantmentHandler.executeRemove(player!!, args)
             "durability" -> DurabilityHandler.execute(player!!, args)
             "settooltip" -> SetTooltipHandler.execute(player!!, args)
-            "item" -> handleItem(sender, player, args)
             "reload" -> reload(sender)
             "class" -> handleClass(sender, args)
             "debug" -> sender.sendMessage(Component.text("MagicHeroes: ${Bukkit.getOnlinePlayers().size} online player(s)."))
@@ -93,29 +103,41 @@ class MagicHeroesCommand(
         return true
     }
 
+    private fun handleLanguage(player: Player, args: Array<out String>) {
+        val manager = LanguageManager.get() ?: return
+        val code = args.getOrNull(1)
+        if (code == null) {
+            player.sendMessage(Component.text("Languages: ${manager.getAvailableLanguages().joinToString(", ")}"))
+            return
+        }
+        if (!manager.setPlayerLanguage(player, code.lowercase())) player.sendMessage(Component.text("Unknown language: $code"))
+        else player.sendMessage(Component.text("Language set to ${code.lowercase()}."))
+    }
+
     private fun handleItem(sender: CommandSender, player: Player?, args: Array<out String>) {
-        val service = plugin.itemService
         when (args.getOrNull(1)?.lowercase()) {
-            "validate" -> {
-                if (!sender.hasPermission("magicheroes.item.validate")) return noPermission(sender, "magicheroes.item.validate")
-                val errors = service.reload()
+            "validate", "reload" -> {
+                val permission = if (args[1].equals("validate", true)) "magicheroes.item.validate" else "magicheroes.item.reload"
+                if (!sender.hasPermission(permission)) return deny(sender, permission)
+                val errors = plugin.itemService.reload()
                 sender.sendMessage(Component.text(if (errors.isEmpty()) "Item registry valid." else errors.joinToString(" | ")))
             }
-            "reload" -> {
-                if (!sender.hasPermission("magicheroes.item.reload")) return noPermission(sender, "magicheroes.item.reload")
-                val errors = service.reload()
-                sender.sendMessage(Component.text(if (errors.isEmpty()) "Item registry reloaded." else errors.joinToString(" | ")))
-            }
             "give" -> {
-                if (!sender.hasPermission("magicheroes.item.give")) return noPermission(sender, "magicheroes.item.give")
+                if (!sender.hasPermission("magicheroes.item.give")) return deny(sender, "magicheroes.item.give")
                 val target = args.getOrNull(2)?.let(Bukkit::getPlayerExact)
                 val id = args.getOrNull(3)
                 val amount = args.getOrNull(4)?.toIntOrNull() ?: 1
-                if (target == null || id == null || amount !in 1..64 || !service.give(target, id, amount)) {
-                    sender.sendMessage(Component.text("Usage: /mh item give <online-player> <id> [amount]"))
-                    return
+                if (target == null || id == null || !plugin.itemService.give(target, id, amount)) {
+                    sender.sendMessage(Component.text("Usage: /mh item give <online-player> <id> [1-64]"))
+                } else sender.sendMessage(Component.text("Gave $amount $id to ${target.name}."))
+            }
+            "inspect" -> {
+                if (!sender.hasPermission("magicheroes.item.inspect")) return deny(sender, "magicheroes.item.inspect")
+                if (player == null) sender.sendMessage(Component.text("Item inspection requires an in-game player."))
+                else {
+                    val identity = plugin.itemService.inspect(player.inventory.itemInMainHand)
+                    sender.sendMessage(Component.text(identity?.let { "${it.id} (${it.type}, v${it.templateVersion})" } ?: "Held item has no MagicHeroes identity."))
                 }
-                sender.sendMessage(Component.text("Gave $amount $id to ${target.name}."))
             }
             "craft" -> {
                 val id = args.getOrNull(2)
@@ -125,232 +147,185 @@ class MagicHeroesCommand(
             "loot" -> {
                 val id = args.getOrNull(2)
                 if (player == null || id == null) sender.sendMessage(Component.text("Usage: /mh item loot <table-id>"))
-                else {
-                    val drops = plugin.itemService.rollLoot(id)
-                    if (drops.isEmpty()) sender.sendMessage(Component.text("No loot table or drops."))
-                    else drops.forEach { (itemId, amount) -> plugin.itemService.give(player, itemId, amount) }
-                }
-            }
-            "inspect" -> {
-                if (player == null) {
-                    sender.sendMessage(Component.text("Item inspection requires an in-game player."))
-                    return
-                }
-                if (!sender.hasPermission("magicheroes.item.inspect")) return noPermission(sender, "magicheroes.item.inspect")
-                val identity = service.inspect(player.inventory.itemInMainHand)
-                sender.sendMessage(Component.text(identity?.let { "${it.id} (${it.type}, v${it.templateVersion})" } ?: "Held item has no MagicHeroes identity."))
+                else plugin.itemService.rollLoot(id).forEach { (itemId, amount) -> plugin.itemService.give(player, itemId, amount) }
             }
             else -> sender.sendMessage(Component.text("Usage: /mh item <give|inspect|validate|reload|craft|loot> ..."))
         }
-    }
-
-    private fun noPermission(sender: CommandSender, permission: String) {
-        sender.sendMessage(Component.text("You do not have permission: $permission"))
-    }
-
-    private fun reload(sender: CommandSender) {
-        if (plugin.reloadPlugin()) sender.sendMessage(Component.text("MagicHeroes reloaded."))
-        else sender.sendMessage(Component.text("MagicHeroes reload failed; active state remains unchanged."))
     }
 
     private fun handleClass(sender: CommandSender, args: Array<out String>) {
         when (args.getOrNull(1)?.lowercase()) {
             "set" -> {
                 val target = args.getOrNull(2)?.let(Bukkit::getPlayerExact)
-                val classId = args.getOrNull(3)
-                val rpgClass = classId?.let { ClassManager.get()?.getClass(it) }
+                val clazz = args.getOrNull(3)?.let { ClassManager.get()?.getClass(it) }
                 val data = target?.let { HeroPlayerManager.get()?.getPlayerData(it.uniqueId) }
-                if (target == null || rpgClass == null || data == null) {
+                if (target == null || clazz == null || data == null) {
                     sender.sendMessage(Component.text("Usage: /mh class set <online-player> <class-id>"))
                     return
                 }
-                data.rpgClass = rpgClass
+                data.rpgClass = clazz
                 data.level = 1
                 data.exp = 0
                 data.calculateBaseStats()
-                data.currentMana = data.getTotalMaxMana()
-                StatCalculator.updateEquipmentStats(target, data)
-                resources.applyMaxHealth(target, data.getTotalMaxHealth())
-                resources.restoreHealth(target)
-                sender.sendMessage(Component.text("Set ${target.name} to ${rpgClass.id}."))
+                refreshStats(target)
+                sender.sendMessage(Component.text("Set ${target.name} to ${clazz.id}."))
             }
             "levelup" -> {
                 val target = args.getOrNull(2)?.let(Bukkit::getPlayerExact)
                 val data = target?.let { HeroPlayerManager.get()?.getPlayerData(it.uniqueId) }
-                if (target == null || data == null) {
-                    sender.sendMessage(Component.text("Usage: /mh class levelup <online-player>"))
-                    return
+                if (target == null || data == null) sender.sendMessage(Component.text("Usage: /mh class levelup <online-player>"))
+                else {
+                    data.level += 1
+                    data.calculateBaseStats()
+                    refreshStats(target)
+                    sender.sendMessage(Component.text("${target.name} reached level ${data.level}."))
                 }
-                data.level += 1
-                data.calculateBaseStats()
-                data.currentMana = data.getTotalMaxMana()
-                StatCalculator.updateEquipmentStats(target, data)
-                resources.applyMaxHealth(target, data.getTotalMaxHealth())
-                resources.restoreHealth(target)
-                sender.sendMessage(Component.text("${target.name} reached level ${data.level}."))
             }
             else -> sender.sendMessage(Component.text("Usage: /mh class <set|levelup> ..."))
         }
     }
 
+    private fun handleLevel(sender: CommandSender, args: Array<out String>) {
+        val target = args.getOrNull(2)?.let(Bukkit::getPlayerExact)
+        val amount = args.getOrNull(3)?.toIntOrNull()
+        val data = target?.let { HeroPlayerManager.get()?.getPlayerData(it.uniqueId) }
+        if (!args.getOrNull(1).equals("addexp", true) || target == null || amount == null || amount <= 0 || data == null) {
+            sender.sendMessage(Component.text("Usage: /mh level addexp <online-player> <positive-amount>"))
+            return
+        }
+        val levels = data.addExperience(amount)
+        refreshStats(target)
+        sender.sendMessage(Component.text("Granted $amount EXP; gained $levels level(s)."))
+    }
+
     private fun showSkills(player: Player) {
         val unlocked = HeroPlayerManager.get()?.getPlayerData(player.uniqueId)?.unlockedSkills.orEmpty()
-        player.sendMessage(Component.text("Skills: ${skills.ids().joinToString { id -> if (id in unlocked) "[unlocked] $id" else "[locked] $id" }}"))
+        player.sendMessage(Component.text("Skills: ${skills.ids().joinToString { if (it in unlocked) "[unlocked] $it" else "[locked] $it" }}"))
     }
 
     private fun handleSkill(player: Player, args: Array<out String>) {
         when (args.getOrNull(1)?.lowercase()) {
-            "cast" -> {
-                val id = args.getOrNull(2)
-                if (id == null) { player.sendMessage(Component.text("Usage: /mh skill cast <id>")); return }
-                when (val result = skills.cast(player, id)) {
-                    is SkillCastResult.Success -> player.sendMessage(Component.text("Cast ${result.skill.id}."))
-                    is SkillCastResult.Rejected -> player.sendMessage(Component.text(result.reason))
-                }
-            }
+            "cast" -> handleCast(player, args.getOrNull(2))
             "bind" -> {
                 val slot = args.getOrNull(2)?.toIntOrNull()
                 val id = args.getOrNull(3)
-                if (slot == null || id == null || !skills.bind(player, slot, id)) player.sendMessage(Component.text("Usage: /mh skill bind <slot 1-9> <id>"))
-                else player.sendMessage(Component.text("Bound $id to slot $slot."))
+                player.sendMessage(Component.text(if (slot != null && id != null && skills.bind(player, slot, id)) "Bound $id to slot $slot." else "Usage: /mh skill bind <1-9> <id>"))
             }
             "unbind" -> {
                 val slot = args.getOrNull(2)?.toIntOrNull()
-                if (slot == null || !skills.unbind(player, slot)) player.sendMessage(Component.text("Usage: /mh skill unbind <slot 1-9>"))
-                else player.sendMessage(Component.text("Unbound slot $slot."))
+                player.sendMessage(Component.text(if (slot != null && skills.unbind(player, slot)) "Unbound slot $slot." else "Usage: /mh skill unbind <1-9>"))
             }
             "unlock" -> {
                 val id = args.getOrNull(2)
-                if (id == null || !skills.unlock(player, id)) player.sendMessage(Component.text("Unknown skill: ${id ?: ""}"))
-                else player.sendMessage(Component.text("Unlocked $id."))
+                player.sendMessage(Component.text(if (id != null && skills.unlock(player, id)) "Unlocked $id." else "Unknown skill."))
             }
-            "tree" -> {
-                val node = args.getOrNull(2)
-                if (node == null) player.sendMessage(Component.text("Usage: /mh skill tree <node>"))
-                else player.sendMessage(Component.text(skills.unlockTreeNode(player, node)))
-            }
+            "tree" -> player.sendMessage(Component.text(args.getOrNull(2)?.let { skills.unlockTreeNode(player, it) } ?: "Usage: /mh skill tree <node>"))
             "reset" -> { skills.reset(player); player.sendMessage(Component.text("Skills reset.")) }
             else -> player.sendMessage(Component.text("Usage: /mh skill <cast|bind|unbind|unlock|tree|reset> ..."))
         }
     }
 
-    private fun handleAttributes(player: Player, args: Array<out String>) {
+    private fun handleCast(player: Player, id: String?) {
+        if (id == null) {
+            player.sendMessage(Component.text("Usage: /mh skill cast <id>"))
+            return
+        }
+        when (val result = skills.cast(player, id)) {
+            is SkillCastResult.Success -> player.sendMessage(Component.text("Cast ${result.skill.id}."))
+            is SkillCastResult.Rejected -> player.sendMessage(Component.text(result.reason))
+        }
+    }
 
+    private fun handleAttributes(player: Player, args: Array<out String>) {
         when (args.getOrNull(1)?.lowercase()) {
             null, "show" -> player.sendMessage(Component.text("Attribute points: ${attributes.points(player)} | ${AttributeType.entries.joinToString { "${it.name.lowercase()}=${HeroPlayerManager.get()?.getPlayerData(player.uniqueId)?.attribute(it) ?: 0}" }}"))
             "add" -> {
                 val type = args.getOrNull(2)?.uppercase()?.let { runCatching { AttributeType.valueOf(it) }.getOrNull() }
                 val amount = args.getOrNull(3)?.toIntOrNull() ?: 1
-                if (type == null) {
-                    player.sendMessage(Component.text("Usage: /mh attributes add <type> [amount]"))
-                    return
+                if (type == null) player.sendMessage(Component.text("Usage: /mh attributes add <type> [amount]"))
+                else {
+                    val result = attributes.spend(player, type, amount)
+                    player.sendMessage(Component.text(result.message))
+                    if (result.success) refreshStats(player)
                 }
-                val result = attributes.spend(player, type, amount)
-                player.sendMessage(Component.text(result.message))
-                if (result.success) refreshPlayerStats(player)
             }
-            "reset" -> {
-                val refunded = attributes.reset(player)
-                player.sendMessage(Component.text("Refunded $refunded attribute point(s)."))
-                refreshPlayerStats(player)
-            }
+            "reset" -> { player.sendMessage(Component.text("Refunded ${attributes.reset(player)} attribute point(s).")); refreshStats(player) }
             else -> player.sendMessage(Component.text("Usage: /mh attributes <show|add|reset>"))
         }
     }
 
-    private fun handleLevel(sender: CommandSender, args: Array<out String>) {
-        if (!args.getOrNull(1).equals("addexp", true)) {
-            sender.sendMessage(Component.text("Usage: /mh level addexp <online-player> <amount>"))
-            return
-        }
-        val target = args.getOrNull(2)?.let(Bukkit::getPlayerExact)
-        val amount = args.getOrNull(3)?.toIntOrNull()
-        val data = target?.let { HeroPlayerManager.get()?.getPlayerData(it.uniqueId) }
-        if (target == null || amount == null || amount <= 0 || data == null) {
-            sender.sendMessage(Component.text("Usage: /mh level addexp <online-player> <positive-amount>"))
-            return
-        }
-        val levels = data.addExperience(amount)
-        refreshPlayerStats(target)
-        sender.sendMessage(Component.text("Granted $amount EXP to ${target.name}; gained $levels level(s)."))
+    private fun showQuests(player: Player) {
+        val data = HeroPlayerManager.get()?.getPlayerData(player.uniqueId)
+        val active = data?.questProgress?.keys?.joinToString().orEmpty()
+        player.sendMessage(Component.text("Active quests: ${active.ifBlank { "none" }}"))
     }
 
-    private fun refreshPlayerStats(player: Player) {
+    private fun handleQuest(player: Player, args: Array<out String>) {
+        when (args.getOrNull(1)?.lowercase()) {
+            "start" -> player.sendMessage(Component.text(args.getOrNull(2)?.let { quests.start(player, it).message } ?: "Usage: /mh quest start <id>"))
+            else -> player.sendMessage(Component.text("Usage: /mh quest start <id>"))
+        }
+    }
+
+    private fun handleParty(player: Player, args: Array<out String>) {
+        when (args.getOrNull(1)?.lowercase()) {
+            "invite" -> {
+                val target = args.getOrNull(2)?.let(Bukkit::getPlayerExact)
+                player.sendMessage(Component.text(if (target != null && parties.invite(player, target)) "Invited ${target.name}." else "Usage: /mh party invite <online-player>"))
+            }
+            "accept" -> player.sendMessage(Component.text(if (parties.accept(player)) "Joined party." else "No party invitation."))
+            "leave" -> player.sendMessage(Component.text(if (parties.leave(player)) "Left party." else "You are not in a party."))
+            else -> player.sendMessage(Component.text("Usage: /mh party <invite|accept|leave> ..."))
+        }
+    }
+
+    private fun handleWaypoint(player: Player, args: Array<out String>) {
+        when (args.getOrNull(1)?.lowercase()) {
+            "discover" -> player.sendMessage(Component.text(if (args.getOrNull(2)?.let { waypoints.discover(player, it) } == true) "Waypoint discovered." else "Unknown waypoint."))
+            "teleport" -> player.sendMessage(Component.text(if (args.getOrNull(2)?.let { waypoints.teleport(player, it) } == true) "Teleported." else "Waypoint unavailable."))
+            "list" -> player.sendMessage(Component.text("Waypoints: ${waypoints.discovered(player).joinToString().ifBlank { "none" }}"))
+            else -> player.sendMessage(Component.text("Usage: /mh waypoint <discover|teleport|list> ..."))
+        }
+    }
+
+    private fun showStats(player: Player) {
+        val data = HeroPlayerManager.get()?.getPlayerData(player.uniqueId) ?: return
+        val maxHealth = player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH)?.value ?: 0.0
+        player.sendMessage(Component.text("HP ${"%.0f".format(player.health)}/${"%.0f".format(maxHealth)} | Mana ${"%.0f".format(data.currentMana)}/${"%.0f".format(data.getTotalMaxMana())} | Damage ${"%.0f".format(data.getTotalDamage())} | Defense ${"%.0f".format(data.getTotalDefense())}"))
+    }
+
+    private fun refreshStats(player: Player) {
         val data = HeroPlayerManager.get()?.getPlayerData(player.uniqueId) ?: return
         StatCalculator.updateEquipmentStats(player, data)
         resources.applyMaxHealth(player, data.getTotalMaxHealth())
     }
 
-    private fun showStats(player: Player) {
-        val data = HeroPlayerManager.get()?.getPlayerData(player.uniqueId) ?: run {
-            player.sendMessage(Component.text("Profile not loaded."))
-            return
-        }
-        val snapshot = plugin.statCalculationService.snapshot(player)
-        val maxHealth = player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH)?.value ?: 0.0
-        val sources = snapshot.sources.joinToString(", ") { "+${"%.0f".format(it.value)} ${it.stat.name.lowercase()} from ${it.source}" }
-        player.sendMessage(Component.text("HP ${"%.0f".format(player.health)}/${"%.0f".format(maxHealth)} | Mana ${"%.0f".format(data.currentMana)}/${"%.0f".format(data.getTotalMaxMana())} | Damage ${"%.0f".format(data.getTotalDamage())} | Defense ${"%.0f".format(data.getTotalDefense())}"))
-        if (sources.isNotBlank()) player.sendMessage(Component.text(sources))
+    private fun reload(sender: CommandSender) {
+        sender.sendMessage(Component.text(if (plugin.reloadPlugin()) "MagicHeroes reloaded." else "MagicHeroes reload failed."))
     }
 
     private fun sendHelp(sender: CommandSender): Boolean {
-        val visible = commands.filter(sender::hasPermission).joinToString(", ") { it.name }
-        sender.sendMessage(Component.text("/mh <${visible.ifBlank { "help" }}>"))
+        sender.sendMessage(Component.text("/mh <${commands.filter { sender.hasPermission(it.permission) }.joinToString { it.name }}>"))
+        return true
+    }
+
+    private fun deny(sender: CommandSender, permission: String): Boolean {
+        sender.sendMessage(Component.text("You do not have permission: $permission"))
         return true
     }
 
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<out String>): List<String> {
         if (args.size == 1) return commands.filter { sender.hasPermission(it.permission) }.map { it.name }.filter { it.startsWith(args[0], true) }
-        if (args[0].equals("item", true)) return when (args.size) {
-            2 -> complete(args, 1, itemActions(sender))
-            3 -> when {
-                args[1].equals("give", true) && sender.hasPermission("magicheroes.item.give") -> complete(args, 2, Bukkit.getOnlinePlayers().map(Player::getName))
-                args[1].equals("craft", true) -> complete(args, 2, listOf("firebrand"))
-                args[1].equals("loot", true) -> complete(args, 2, listOf("firebrand"))
-                else -> emptyList()
-            }
-            4 -> if (args[1].equals("give", true) && sender.hasPermission("magicheroes.item.give")) complete(args, 3, plugin.itemService.templates().map { it.id }) else emptyList()
-            else -> emptyList()
-        }
         return when (args[0].lowercase()) {
-            "durability" -> complete(args, 1, listOf("set", "infinite", "check", "reset"))
-            "skill" -> when (args.size) {
-                2 -> complete(args, 1, listOf("cast", "bind", "unbind", "unlock", "tree", "reset"))
-                3 -> when (args[1].lowercase()) {
-                    "cast", "unlock" -> complete(args, 2, skills.ids())
-                    "bind", "unbind" -> complete(args, 2, (1..9).map(Int::toString))
-                    else -> emptyList()
-                }
-                4 -> if (args[1].equals("bind", true)) complete(args, 3, skills.ids()) else emptyList()
-                else -> emptyList()
-            }
-            "attributes" -> when (args.size) {
-                2 -> complete(args, 1, listOf("show", "add", "reset"))
-                3 -> if (args[1].equals("add", true)) complete(args, 2, AttributeType.entries.map { it.name.lowercase() }) else emptyList()
-                else -> emptyList()
-            }
-            "level" -> if (args.size == 2) complete(args, 1, listOf("addexp")) else if (args.size == 3) complete(args, 2, Bukkit.getOnlinePlayers().map(Player::getName)) else emptyList()
-            "class" -> when (args.size) {
-                2 -> complete(args, 1, listOf("set", "levelup"))
-                3 -> complete(args, 2, Bukkit.getOnlinePlayers().map(Player::getName))
-                4 -> if (args[1].equals("set", true)) complete(args, 3, ClassManager.get()?.getAvailableClassIds()?.toList().orEmpty()) else emptyList()
-                else -> emptyList()
-            }
-            "language" -> complete(args, 1, LanguageManager.get()?.getAvailableLanguages().orEmpty())
-            "settooltip" -> complete(args, 1, TooltipManager.get()?.getAvailableTooltips().orEmpty())
-            "addenchant", "removeenchant" -> complete(args, 1, org.bukkit.enchantments.Enchantment.values().map { it.key.key })
+            "item" -> complete(args, 1, listOf("give", "inspect", "validate", "reload", "craft", "loot"))
+            "skill" -> complete(args, 1, listOf("cast", "bind", "unbind", "unlock", "tree", "reset"))
+            "quest" -> complete(args, 1, listOf("start"))
+            "party" -> complete(args, 1, listOf("invite", "accept", "leave"))
+            "waypoint" -> complete(args, 1, listOf("discover", "teleport", "list"))
+            "attributes" -> complete(args, 1, listOf("show", "add", "reset"))
+            "level" -> complete(args, 1, listOf("addexp"))
+            "class" -> complete(args, 1, listOf("set", "levelup"))
             else -> emptyList()
-        }
-    }
-
-    private fun itemActions(sender: CommandSender): List<String> = buildList {
-        if (sender.hasPermission("magicheroes.item.give")) add("give")
-        if (sender.hasPermission("magicheroes.item.inspect")) add("inspect")
-        if (sender.hasPermission("magicheroes.item.validate")) add("validate")
-        if (sender.hasPermission("magicheroes.item.reload")) add("reload")
-        if (sender.hasPermission("magicheroes.user")) {
-            add("craft")
-            add("loot")
         }
     }
 

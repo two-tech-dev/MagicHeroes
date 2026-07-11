@@ -11,12 +11,24 @@ import twotech.plugin.magicHeroes.manager.HeroPlayerManager
 import twotech.plugin.magicHeroes.stat.StatCalculationService
 import twotech.plugin.magicHeroes.stat.StatType
 import kotlin.random.Random
+import java.util.concurrent.ConcurrentHashMap
 
 class CombatService(
     private val stats: StatCalculationService,
     private val items: ItemService,
     private val random: Random = Random.Default
 ) {
+    private val externalContexts = ConcurrentHashMap<java.util.UUID, DamageContext>()
+
+    fun damage(context: DamageContext): Boolean {
+        if (context.cancelled || !context.finalDamage.isFinite() || context.finalDamage <= 0.0 || context.victim.isDead) return false
+        externalContexts[context.victim.uniqueId] = context
+        context.victim.damage(context.finalDamage)
+        return true
+    }
+
+    fun consumeExternalContext(victimId: java.util.UUID): DamageContext? = externalContexts.remove(victimId)
+
     fun apply(event: EntityDamageEvent): DamageContext? {
         val context = calculate(event) ?: return null
         if (context.cancelled) {

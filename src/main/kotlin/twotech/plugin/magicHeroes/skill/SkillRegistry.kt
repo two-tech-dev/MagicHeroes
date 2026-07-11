@@ -12,6 +12,20 @@ class SkillRegistry(private val directory: Path) {
     fun ids(): Set<String> = skills.keys
     fun all(): Collection<Skill> = skills.values
 
+    fun register(skill: Skill): Boolean {
+        val key = skill.id.lowercase()
+        if (!key.matches(idPattern) || key in skills) return false
+        skills = skills + (key to skill.copy(id = key))
+        return true
+    }
+
+    fun unregister(id: String): Boolean {
+        val key = id.lowercase()
+        if (key !in skills) return false
+        skills = skills - key
+        return true
+    }
+
     fun reload(): List<String> {
         Files.createDirectories(directory)
         val loaded = linkedMapOf<String, Skill>()

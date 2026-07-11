@@ -1,0 +1,10 @@
+id: first-blood
+display-name: "First Blood"
+objectives:
+  - id: zombie
+    type: KILL
+    target: ZOMBIE
+    required: 1
+rewards:
+  exp: 100
+repeatable: false

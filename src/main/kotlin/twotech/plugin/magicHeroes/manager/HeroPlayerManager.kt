@@ -3,10 +3,10 @@ package twotech.plugin.magicHeroes.manager
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
+import twotech.plugin.magicHeroes.attribute.AttributeType
 import twotech.plugin.magicHeroes.data.HeroPlayerData
 import twotech.plugin.magicHeroes.data.HeroPlayerSnapshot
 import twotech.plugin.magicHeroes.data.ResourceService
-import twotech.plugin.magicHeroes.attribute.AttributeType
 import twotech.plugin.magicHeroes.storage.YamlPlayerStorage
 import java.nio.file.Path
 import java.util.UUID
@@ -26,13 +26,10 @@ class HeroPlayerManager(private val plugin: JavaPlugin) {
     }
 
     companion object {
-        @Volatile
-        private var instance: HeroPlayerManager? = null
-
+        @Volatile private var instance: HeroPlayerManager? = null
         fun getInstance(plugin: JavaPlugin): HeroPlayerManager = instance ?: synchronized(this) {
             instance ?: HeroPlayerManager(plugin).also { instance = it }
         }
-
         fun get(): HeroPlayerManager? = instance
     }
 
@@ -43,16 +40,14 @@ class HeroPlayerManager(private val plugin: JavaPlugin) {
     }
 
     fun loadPlayerData(player: Player, resources: ResourceService): HeroPlayerData {
-        val profileFuture = preloadedProfiles.computeIfAbsent(player.uniqueId) {
+        val future = preloadedProfiles.computeIfAbsent(player.uniqueId) {
             CompletableFuture.supplyAsync({ storage.load(player.uniqueId, player.name) }, ioExecutor)
         }
-        val readySnapshot = profileFuture.getNow(null)
-        if (readySnapshot != null) return applySnapshot(player, readySnapshot, resources)
-
+        future.getNow(null)?.let { return applySnapshot(player, it, resources) }
         val fallback = createDefaultData(player)
         playerDataCache[player.uniqueId] = fallback
         resources.applyMaxHealth(player, fallback.getTotalMaxHealth())
-        profileFuture.whenComplete { snapshot, error ->
+        future.whenComplete { snapshot, error ->
             if (error != null) {
                 plugin.logger.log(Level.SEVERE, "Could not load profile for ${player.uniqueId}", error)
                 return@whenComplete
@@ -65,17 +60,9 @@ class HeroPlayerManager(private val plugin: JavaPlugin) {
     }
 
     fun getPlayerData(playerUUID: UUID): HeroPlayerData? = playerDataCache[playerUUID]
-
     fun getOrCreatePlayerData(player: Player): HeroPlayerData = playerDataCache.getOrPut(player.uniqueId) { createDefaultData(player) }
-
-    fun setPlayerData(playerUUID: UUID, data: HeroPlayerData) {
-        playerDataCache[playerUUID] = data
-    }
-
-    fun removePlayerData(playerUUID: UUID) {
-        playerDataCache.remove(playerUUID)
-        preloadedProfiles.remove(playerUUID)
-    }
+    fun setPlayerData(playerUUID: UUID, data: HeroPlayerData) { playerDataCache[playerUUID] = data }
+    fun removePlayerData(playerUUID: UUID) { playerDataCache.remove(playerUUID); preloadedProfiles.remove(playerUUID) }
 
     fun savePlayerData(player: Player) {
         val data = playerDataCache[player.uniqueId] ?: return
@@ -88,9 +75,7 @@ class HeroPlayerManager(private val plugin: JavaPlugin) {
         }
     }
 
-    fun saveAllPlayerData() {
-        Bukkit.getOnlinePlayers().forEach(::savePlayerData)
-    }
+    fun saveAllPlayerData() { Bukkit.getOnlinePlayers().forEach(::savePlayerData) }
 
     fun shutdown() {
         ioExecutor.shutdown()
@@ -123,6 +108,9 @@ class HeroPlayerManager(private val plugin: JavaPlugin) {
         data.unlockedSkills += snapshot.unlockedSkills
         data.skillBindings.putAll(snapshot.skillBindings)
         data.skillTreeLevels.putAll(snapshot.skillTreeLevels)
+        snapshot.questProgress.forEach { (quest, objectives) -> data.questProgress[quest] = objectives.toMutableMap() }
+        data.completedQuests += snapshot.completedQuests
+        data.discoveredWaypoints += snapshot.discoveredWaypoints
         data.calculateBaseStats()
         data.currentMana = snapshot.currentMana
         playerDataCache[player.uniqueId] = data
@@ -148,6 +136,9 @@ class HeroPlayerManager(private val plugin: JavaPlugin) {
         unlockedSkills = data.unlockedSkills,
         skillBindings = data.skillBindings,
         skillTreeLevels = data.skillTreeLevels,
+        questProgress = data.questProgress,
+        completedQuests = data.completedQuests,
+        discoveredWaypoints = data.discoveredWaypoints,
         maxMana = data.maxMana,
         baseDefense = data.baseDefense,
         baseHealthRegen = data.baseHealthRegen,

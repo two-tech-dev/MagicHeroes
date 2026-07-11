@@ -2,6 +2,7 @@ name: MagicHeroes
 version: '${version}'
 main: twotech.plugin.magicHeroes.MagicHeroes
 api-version: '1.21'
+softdepend: [PlaceholderAPI, Vault, MythicMobs, Citizens, ItemsAdder, Oraxen, Nexo]
 
 commands:
   magicheroes:
@@ -25,6 +26,7 @@ permissions:
       magicheroes.item.validate: true
       magicheroes.item.reload: true
       magicheroes.item.inspect: true
+      magicheroes.skill.admin: true
       magicheroes.class.admin: true
       magicheroes.level.admin: true
       magicheroes.debug: true

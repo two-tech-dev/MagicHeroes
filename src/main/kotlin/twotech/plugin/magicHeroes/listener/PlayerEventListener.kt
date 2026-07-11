@@ -1,7 +1,6 @@
 package twotech.plugin.magicHeroes.listener
 
 import org.bukkit.Bukkit
-import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
@@ -10,15 +9,19 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerRespawnEvent
 import org.bukkit.plugin.java.JavaPlugin
-import twotech.plugin.magicHeroes.calculator.StatCalculator
 import twotech.plugin.magicHeroes.data.ResourceService
+import twotech.plugin.magicHeroes.calculator.StatCalculator
 import twotech.plugin.magicHeroes.manager.HeroPlayerManager
+import twotech.plugin.magicHeroes.party.PartyService
 import twotech.plugin.magicHeroes.skill.SkillService
+import twotech.plugin.magicHeroes.waypoint.WaypointService
 
 class PlayerEventListener(
     private val plugin: JavaPlugin,
     private val resourceService: ResourceService,
-    private val skills: SkillService
+    private val skills: SkillService,
+    private val parties: PartyService,
+    private val waypoints: WaypointService
 ) : Listener {
     private val playerManager = HeroPlayerManager.getInstance(plugin)
 
@@ -33,11 +36,13 @@ class PlayerEventListener(
         val data = playerManager.loadPlayerData(player, resourceService)
         StatCalculator.updateEquipmentStats(player, data)
         resourceService.applyMaxHealth(player, data.getTotalMaxHealth())
+        waypoints.restore(player, data.discoveredWaypoints)
     }
 
     @EventHandler
     fun onPlayerQuit(event: PlayerQuitEvent) {
         skills.clear(event.player.uniqueId)
+        parties.clear(event.player.uniqueId)
         playerManager.savePlayerData(event.player)
         playerManager.removePlayerData(event.player.uniqueId)
     }
