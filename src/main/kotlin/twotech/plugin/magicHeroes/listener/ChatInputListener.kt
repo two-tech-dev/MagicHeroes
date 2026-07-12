@@ -27,6 +27,11 @@ class ChatInputListener(private val plugin: JavaPlugin) : Listener {
 
     private fun handleInput(player: Player, state: String, input: String) {
         val language = LanguageManager.get()
+        if (state.startsWith("quest_")) {
+            handleQuestInput(player, state, input)
+            GUIClickListener.clearInputState(player.uniqueId.toString())
+            return
+        }
         if (input.equals("cancel", true)) {
             player.sendMessage(language?.getComponent(player, "input.cancel") ?: return)
             GUIClickListener.clearInputState(player.uniqueId.toString())
@@ -64,6 +69,26 @@ class ChatInputListener(private val plugin: JavaPlugin) : Listener {
             "durability_set" -> setDurability(player, input, language)
         }
         GUIClickListener.clearInputState(player.uniqueId.toString())
+    }
+
+    private fun handleQuestInput(player: Player, state: String, input: String) {
+        if (!player.hasPermission("magicheroes.quest.admin")) return
+        val quests = (plugin as? twotech.plugin.magicHeroes.MagicHeroes)?.questService ?: return
+        val result = when (state) {
+            "quest_add" -> {
+                val parts = input.split('|').map(String::trim)
+                if (parts.size != 6) null else {
+                    val type = runCatching { twotech.plugin.magicHeroes.quest.QuestObjectiveType.valueOf(parts[2].uppercase()) }.getOrNull()
+                    val required = parts[4].toIntOrNull()
+                    val exp = parts[5].toIntOrNull()
+                    if (type == null || required == null || exp == null) null else quests.addSimple(parts[0], parts[1], type, parts[3], required, exp)
+                }
+            }
+            "quest_remove" -> quests.remove(input)
+            "quest_edit" -> input.split('|', limit = 2).map(String::trim).let { if (it.size == 2) quests.editDisplayName(it[0], it[1]) else null }
+            else -> null
+        }
+        player.sendMessage(net.kyori.adventure.text.Component.text(result?.message ?: "Invalid quest input."))
     }
 
     private fun setDurability(player: Player, input: String, language: LanguageManager?) {

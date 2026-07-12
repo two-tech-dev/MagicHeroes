@@ -17,6 +17,8 @@ import twotech.plugin.magicHeroes.handler.EnchantmentHandler
 import twotech.plugin.magicHeroes.handler.GUIHandler
 import twotech.plugin.magicHeroes.handler.LoreHandler
 import twotech.plugin.magicHeroes.handler.RenameHandler
+import twotech.plugin.magicHeroes.gui.ItemEditorGUI
+import twotech.plugin.magicHeroes.gui.QuestGUI
 import twotech.plugin.magicHeroes.handler.SetTooltipHandler
 import twotech.plugin.magicHeroes.manager.ClassManager
 import twotech.plugin.magicHeroes.manager.HeroPlayerManager
@@ -65,9 +67,15 @@ class MagicHeroesCommand(
     )
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
-        if (args.isEmpty()) return sendHelp(sender)
-        val spec = commands.firstOrNull { it.name == args[0].lowercase() } ?: run {
-            sender.sendMessage(Component.text("Unknown subcommand: ${args[0]}"))
+        val normalizedArgs = when (command.name.lowercase()) {
+            "quest" -> arrayOf("quest", *args)
+            "party" -> arrayOf("party", *args)
+            else -> args
+        }
+        if (normalizedArgs.isEmpty()) return sendHelp(sender)
+        val effectiveArgs = normalizedArgs
+        val spec = commands.firstOrNull { it.name == effectiveArgs[0].lowercase() } ?: run {
+            sender.sendMessage(Component.text("Unknown subcommand: ${effectiveArgs[0]}"))
             return sendHelp(sender)
         }
         if (!sender.hasPermission(spec.permission)) return deny(sender, spec.permission)
@@ -78,26 +86,26 @@ class MagicHeroesCommand(
         }
         when (spec.name) {
             "help" -> sendHelp(sender)
-            "language" -> handleLanguage(player!!, args)
+            "language" -> handleLanguage(player!!, effectiveArgs)
             "stats" -> showStats(player!!)
-            "attributes" -> handleAttributes(player!!, args)
+            "attributes" -> handleAttributes(player!!, effectiveArgs)
             "skills" -> showSkills(player!!)
-            "skill" -> handleSkill(player!!, args)
+            "skill" -> handleSkill(player!!, effectiveArgs)
             "quests" -> showQuests(player!!)
-            "quest" -> handleQuest(player!!, args)
-            "party" -> handleParty(player!!, args)
-            "waypoint" -> handleWaypoint(player!!, args)
-            "level" -> handleLevel(sender, args)
-            "item" -> handleItem(sender, player, args)
-            "gui" -> GUIHandler.execute(player!!, args)
-            "rename" -> RenameHandler.execute(player!!, args)
-            "setlore" -> LoreHandler.execute(player!!, args)
-            "addenchant" -> EnchantmentHandler.executeAdd(player!!, args)
-            "removeenchant" -> EnchantmentHandler.executeRemove(player!!, args)
-            "durability" -> DurabilityHandler.execute(player!!, args)
-            "settooltip" -> SetTooltipHandler.execute(player!!, args)
+            "quest" -> handleQuest(player!!, effectiveArgs)
+            "party" -> handleParty(player!!, effectiveArgs)
+            "waypoint" -> handleWaypoint(player!!, effectiveArgs)
+            "level" -> handleLevel(sender, effectiveArgs)
+            "item" -> handleItem(sender, player, effectiveArgs)
+            "gui" -> GUIHandler.execute(player!!, effectiveArgs)
+            "rename" -> RenameHandler.execute(player!!, effectiveArgs)
+            "setlore" -> LoreHandler.execute(player!!, effectiveArgs)
+            "addenchant" -> EnchantmentHandler.executeAdd(player!!, effectiveArgs)
+            "removeenchant" -> EnchantmentHandler.executeRemove(player!!, effectiveArgs)
+            "durability" -> DurabilityHandler.execute(player!!, effectiveArgs)
+            "settooltip" -> SetTooltipHandler.execute(player!!, effectiveArgs)
             "reload" -> reload(sender)
-            "class" -> handleClass(sender, args)
+            "class" -> handleClass(sender, effectiveArgs)
             "debug" -> sender.sendMessage(Component.text("MagicHeroes: ${Bukkit.getOnlinePlayers().size} online player(s)."))
         }
         return true
@@ -115,6 +123,12 @@ class MagicHeroesCommand(
     }
 
     private fun handleItem(sender: CommandSender, player: Player?, args: Array<out String>) {
+        if (args.getOrNull(1) == null) {
+            if (player == null) sender.sendMessage(Component.text("Item editor requires an in-game player."))
+            else if (twotech.plugin.magicHeroes.util.ItemEditor.hasValidItemInHand(player)) ItemEditorGUI(player).openGUI()
+            else sender.sendMessage(LanguageManager.get()?.getComponent(player, "gui.no-item-error") ?: Component.text("Hold an item first."))
+            return
+        }
         when (args.getOrNull(1)?.lowercase()) {
             "validate", "reload" -> {
                 val permission = if (args[1].equals("validate", true)) "magicheroes.item.validate" else "magicheroes.item.reload"
@@ -270,8 +284,13 @@ class MagicHeroesCommand(
 
     private fun handleQuest(player: Player, args: Array<out String>) {
         when (args.getOrNull(1)?.lowercase()) {
-            "start" -> player.sendMessage(Component.text(args.getOrNull(2)?.let { quests.start(player, it).message } ?: "Usage: /mh quest start <id>"))
-            else -> player.sendMessage(Component.text("Usage: /mh quest start <id>"))
+            null, "gui", "list" -> QuestGUI(player, quests).open()
+            "start" -> player.sendMessage(Component.text(args.getOrNull(2)?.let { quests.start(player, it).message } ?: "Usage: /quest start <id>"))
+            "add", "remove", "edit" -> {
+                if (!player.hasPermission("magicheroes.quest.admin")) player.sendMessage(Component.text("No permission."))
+                else QuestGUI(player, quests).open()
+            }
+            else -> player.sendMessage(Component.text("Usage: /quest [gui|start|add|remove|edit] ..."))
         }
     }
 

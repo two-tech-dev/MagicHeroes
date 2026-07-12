@@ -88,8 +88,14 @@ class MagicHeroes : JavaPlugin() {
             command.setExecutor(commandHandler)
             command.tabCompleter = commandHandler
         } ?: error("magicheroes command missing from plugin.yml")
+        listOf("quest", "party").forEach { name ->
+            getCommand(name)?.also { command ->
+                command.setExecutor(commandHandler)
+                command.tabCompleter = commandHandler
+            }
+        }
 
-        server.pluginManager.registerEvents(GUIClickListener(), this)
+        server.pluginManager.registerEvents(GUIClickListener(questService), this)
         server.pluginManager.registerEvents(ChatInputListener(this), this)
         server.pluginManager.registerEvents(PlayerEventListener(this, resources, skillService, partyService, waypointService), this)
         server.pluginManager.registerEvents(EquipmentEventListener(this, resources, itemService.requirements, itemService.advance), this)

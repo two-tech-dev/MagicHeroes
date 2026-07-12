@@ -2,6 +2,27 @@
 
 Quest files live in `plugins/MagicHeroes/quests/`. Each `.yml` file defines one quest. Run `/mh reload` after editing files.
 
+## In-game GUI
+
+- `/quest` opens player quest menu.
+- `/quest start <id>` starts one quest directly.
+- `/quest add`, `/quest remove`, `/quest edit` open admin controls for players with `magicheroes.quest.admin`.
+- Admin GUI chat input accepts `cancel` to abort.
+
+Admin input formats:
+
+```text
+add:    id|display name|type|target|required|exp
+remove: quest-id
+edit:   quest-id|new display name
+```
+
+Example:
+
+```text
+starter-mine|Starter Mining|MINE|COAL_ORE|16|100
+```
+
 ## Full example
 
 ```yaml

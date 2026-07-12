@@ -1,5 +1,6 @@
 package twotech.plugin.magicHeroes.listener
 
+import net.kyori.adventure.text.Component
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
@@ -12,9 +13,12 @@ import org.bukkit.enchantments.Enchantment
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.inventory.ItemStack
 import twotech.plugin.magicHeroes.gui.ItemEditorGUI
+import twotech.plugin.magicHeroes.gui.MainGUI
 import twotech.plugin.magicHeroes.gui.EnchantmentGUI
 import twotech.plugin.magicHeroes.gui.DurabilityGUI
 import twotech.plugin.magicHeroes.gui.TooltipGUI
+import twotech.plugin.magicHeroes.gui.QuestGUI
+import twotech.plugin.magicHeroes.quest.QuestService
 import twotech.plugin.magicHeroes.manager.DurabilityManager
 import twotech.plugin.magicHeroes.manager.LanguageManager
 import twotech.plugin.magicHeroes.manager.TooltipManager
@@ -23,7 +27,7 @@ import twotech.plugin.magicHeroes.util.ItemUtils
 /**
  * Listener to handle click events inside item editor GUIs
  */
-class GUIClickListener : Listener {
+class GUIClickListener(private val quests: QuestService? = null) : Listener {
     
     companion object {
         // Cache to store player input state (playerUUID -> input_type)
@@ -47,7 +51,9 @@ class GUIClickListener : Listener {
         val isEditor = topInventory.holder is ItemEditorGUI ||
             topInventory.holder is EnchantmentGUI ||
             topInventory.holder is DurabilityGUI ||
-            topInventory.holder is TooltipGUI
+            topInventory.holder is TooltipGUI ||
+            topInventory.holder is QuestGUI ||
+            topInventory.holder is MainGUI
         if (!isEditor) return
 
         event.isCancelled = true
@@ -57,6 +63,8 @@ class GUIClickListener : Listener {
             is EnchantmentGUI -> handleEnchantmentGUIClick(event, player)
             is DurabilityGUI -> handleDurabilityGUIClick(event, player)
             is TooltipGUI -> handleTooltipGUIClick(event, player)
+            is QuestGUI -> handleQuestGUIClick(event, player)
+            is MainGUI -> handleHubGUIClick(event, player)
         }
     }
     
@@ -65,7 +73,9 @@ class GUIClickListener : Listener {
         if (event.inventory.holder is ItemEditorGUI ||
             event.inventory.holder is EnchantmentGUI ||
             event.inventory.holder is DurabilityGUI ||
-            event.inventory.holder is TooltipGUI
+            event.inventory.holder is TooltipGUI ||
+            event.inventory.holder is QuestGUI ||
+            event.inventory.holder is MainGUI
         ) {
             event.isCancelled = true
         }
@@ -81,9 +91,49 @@ class GUIClickListener : Listener {
         clearInputState(event.player.uniqueId.toString())
     }
 
+    private fun handleHubGUIClick(event: InventoryClickEvent, player: Player) {
+        val action = event.currentItem?.itemMeta?.persistentDataContainer?.get(MainGUI.actionKey, PersistentDataType.STRING) ?: return
+        when (action) {
+            "close" -> player.closeInventory()
+            "quest" -> quests?.let { QuestGUI(player, it).open() }
+            "item" -> ItemEditorGUI(player).openGUI()
+            "stats" -> player.performCommand("mh stats")
+            "skills" -> player.performCommand("mh skills")
+            "party" -> player.performCommand("party")
+            "waypoint" -> player.performCommand("mh waypoint list")
+            "craft" -> player.performCommand("mh item craft")
+            "loot" -> player.performCommand("mh item loot")
+        }
+    }
+
     /**
      * Handles clicks on the main editor GUI (ItemEditorGUI)
      */
+
+    private fun handleQuestGUIClick(event: InventoryClickEvent, player: Player) {
+        val item = event.currentItem ?: return
+        val action = item.itemMeta?.persistentDataContainer?.get(QuestGUI.key, PersistentDataType.STRING) ?: return
+        val service = quests ?: return
+        when {
+            action == "close" -> player.closeInventory()
+            action.startsWith("start:") -> player.sendMessage(Component.text(service.start(player, action.removePrefix("start:")).message))
+            action == "admin:add" -> {
+                player.closeInventory()
+                setInputState(player.uniqueId.toString(), "quest_add")
+                player.sendMessage(Component.text("Enter: id|display name|type|target|required|exp"))
+            }
+            action == "admin:remove" -> {
+                player.closeInventory()
+                setInputState(player.uniqueId.toString(), "quest_remove")
+                player.sendMessage(Component.text("Enter quest id to remove."))
+            }
+            action == "admin:edit" -> {
+                player.closeInventory()
+                setInputState(player.uniqueId.toString(), "quest_edit")
+                player.sendMessage(Component.text("Enter: quest id|new display name"))
+            }
+        }
+    }
 
     private fun isUnsafeClick(event: InventoryClickEvent): Boolean =
         event.click == org.bukkit.event.inventory.ClickType.SHIFT_LEFT ||
@@ -109,6 +159,7 @@ class GUIClickListener : Listener {
         ) ?: return
         
         when (buttonType) {
+            "close" -> player.closeInventory()
             "rename" -> {
                 player.closeInventory()
                 setInputState(player.uniqueId.toString(), "rename")

@@ -10,6 +10,14 @@ commands:
     usage: /magicheroes <subcommand>
     aliases: [mh]
     permission: magicheroes.user
+  quest:
+    description: Open quest menu or manage quests.
+    usage: /quest [add|remove|edit]
+    permission: magicheroes.user
+  party:
+    description: Open party menu or manage party.
+    usage: /party [invite|accept|leave|kick|disband|chat]
+    permission: magicheroes.user
 
 permissions:
   magicheroes.user:
@@ -27,6 +35,7 @@ permissions:
       magicheroes.item.reload: true
       magicheroes.item.inspect: true
       magicheroes.skill.admin: true
+      magicheroes.quest.admin: true
       magicheroes.class.admin: true
       magicheroes.level.admin: true
       magicheroes.debug: true
@@ -62,6 +71,9 @@ permissions:
     default: op
   magicheroes.skill.admin:
     description: Manage player skills and skill trees.
+    default: op
+  magicheroes.quest.admin:
+    description: Create, remove, and edit quests in-game.
     default: op
   magicheroes.debug:
     description: View MagicHeroes diagnostics.
