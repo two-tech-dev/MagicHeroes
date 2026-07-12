@@ -3,7 +3,7 @@ package twotech.plugin.magicHeroes.util
 import org.bukkit.NamespacedKey
 import org.bukkit.plugin.java.JavaPlugin
 
-class PdcKeys(plugin: JavaPlugin) {
+class PdcKeys(private val plugin: JavaPlugin) {
     val health = NamespacedKey(plugin, "mh_health")
     val mana = NamespacedKey(plugin, "mh_mana")
     val damage = NamespacedKey(plugin, "mh_damage")

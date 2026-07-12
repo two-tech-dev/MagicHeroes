@@ -6,3 +6,11 @@ actionbar:
   enable: true
   update-interval: 20  # ticks (20 ticks = 1 second)
   format: "HP: {current_hp}/{max_hp} | Mana: {current_mana}/{max_mana} | Defense: {defense} | Kills: {kills}"
+
+# Party limits. Reload with /mh reload.
+party:
+  max-size: 5
+
+# Waypoint teleport delay between successful teleports, in seconds.
+waypoints:
+  teleport-cooldown-seconds: 5

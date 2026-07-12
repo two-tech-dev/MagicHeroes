@@ -2,6 +2,29 @@ package twotech.plugin.magicHeroes.quest
 
 enum class QuestObjectiveType { KILL, COLLECT, MINE, REACH, INTERACT }
 
+data class ReachTarget(val world: String, val x: Double, val y: Double, val z: Double, val radius: Double) {
+    fun contains(worldName: String, x: Double, y: Double, z: Double): Boolean {
+        if (!world.equals(worldName, true)) return false
+        val dx = this.x - x
+        val dy = this.y - y
+        val dz = this.z - z
+        return dx * dx + dy * dy + dz * dz <= radius * radius
+    }
+
+    companion object {
+        fun parse(raw: String): ReachTarget? {
+            val parts = raw.split(',').map(String::trim)
+            if (parts.size != 5) return null
+            val x = parts[1].toDoubleOrNull() ?: return null
+            val y = parts[2].toDoubleOrNull() ?: return null
+            val z = parts[3].toDoubleOrNull() ?: return null
+            val radius = parts[4].toDoubleOrNull()?.takeIf { it > 0.0 } ?: return null
+            val world = parts[0].takeIf(String::isNotBlank) ?: return null
+            return ReachTarget(world, x, y, z, radius)
+        }
+    }
+}
+
 data class QuestObjective(
     val id: String,
     val type: QuestObjectiveType,

@@ -1,0 +1,10 @@
+id: reach-spawn
+display-name: "Reach Spawn"
+objectives:
+  - id: spawn
+    type: REACH
+    target: world,0,64,0,5
+    required: 1
+rewards:
+  exp: 50
+repeatable: false

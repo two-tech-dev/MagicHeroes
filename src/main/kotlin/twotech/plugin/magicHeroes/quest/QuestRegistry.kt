@@ -26,7 +26,7 @@ class QuestRegistry(private val directory: Path) {
                     val type = runCatching { QuestObjectiveType.valueOf(raw["type"]?.toString()?.uppercase() ?: "") }.getOrNull()
                     val target = raw["target"]?.toString() ?: return@mapNotNull null
                     val required = (raw["required"] as? Number)?.toInt() ?: 0
-                    if (type == null || required <= 0) null else QuestObjective(objectiveId, type, target, required)
+                    if (type == null || required <= 0 || (type == QuestObjectiveType.REACH && ReachTarget.parse(target) == null)) null else QuestObjective(objectiveId, type, target, required)
                 }
                 if (objectives.isEmpty()) {
                     errors += "$path has no valid objectives"

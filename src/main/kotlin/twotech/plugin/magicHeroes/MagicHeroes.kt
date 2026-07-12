@@ -8,7 +8,9 @@ import twotech.plugin.magicHeroes.calculator.StatCalculator
 import twotech.plugin.magicHeroes.combat.CombatService
 import twotech.plugin.magicHeroes.command.MagicHeroesCommand
 import twotech.plugin.magicHeroes.data.ResourceService
+import twotech.plugin.magicHeroes.integration.Integration
 import twotech.plugin.magicHeroes.integration.IntegrationService
+import twotech.plugin.magicHeroes.integration.MagicHeroesPlaceholderExpansion
 import twotech.plugin.magicHeroes.item.ItemService
 import twotech.plugin.magicHeroes.listener.ChatInputListener
 import twotech.plugin.magicHeroes.listener.CombatLifecycleListener
@@ -65,9 +67,10 @@ class MagicHeroes : JavaPlugin() {
         attributeService = AttributeService()
         skillService = SkillService(this, combatService)
         questService = QuestService(this, itemService)
-        partyService = PartyService()
-        waypointService = WaypointService()
+        partyService = PartyService(config.getInt("party.max-size", 5))
+        waypointService = WaypointService(this)
         integrations = IntegrationService(server.pluginManager)
+        if (integrations.isAvailable(Integration.PLACEHOLDER_API)) MagicHeroesPlaceholderExpansion(this).register()
         api = MagicHeroesApiImpl(this, itemService, combatService, skillService, twotech.plugin.magicHeroes.resource.ResourceService())
 
         LanguageManager.getInstance(this).initialize()
@@ -76,7 +79,7 @@ class MagicHeroes : JavaPlugin() {
         TooltipManager.getInstance(this).initialize()
         DurabilityManager.getInstance(this)
 
-        val errors = itemService.initialize() + skillService.initialize() + questService.initialize()
+        val errors = itemService.initialize() + skillService.initialize() + questService.initialize() + waypointService.initialize()
         if (errors.isNotEmpty()) logger.severe("Registry templates rejected: ${errors.joinToString("; ")}")
         logger.info("Optional integrations: ${integrations.available().joinToString().ifBlank { "none" }}")
 
@@ -92,7 +95,7 @@ class MagicHeroes : JavaPlugin() {
         server.pluginManager.registerEvents(EquipmentEventListener(this, resources, itemService.requirements, itemService.advance), this)
         server.pluginManager.registerEvents(DamageEventListener(combatService), this)
         server.pluginManager.registerEvents(CombatLifecycleListener(), this)
-        server.pluginManager.registerEvents(QuestListener(questService), this)
+        server.pluginManager.registerEvents(QuestListener(questService, partyService), this)
         server.pluginManager.registerEvents(DurabilityEventListener(this), this)
 
         actionbarTask = ActionbarTask(this, resources)
@@ -117,10 +120,11 @@ class MagicHeroes : JavaPlugin() {
 
     fun reloadPlugin(): Boolean = try {
         reloadConfig()
+        partyService.configure(config.getInt("party.max-size", 5))
         ClassManager.get()?.loadClasses()
         LanguageManager.get()?.reload()
         TooltipManager.get()?.reload()
-        val errors = itemService.reload() + skillService.reload() + questService.reload()
+        val errors = itemService.reload() + skillService.reload() + questService.reload() + waypointService.reload()
         if (errors.isNotEmpty()) {
             logger.severe("Reload rejected: ${errors.joinToString("; ")}")
             return false

@@ -152,45 +152,12 @@ class TooltipManager(private val plugin: JavaPlugin) {
             // Fallback for older Paper/Minecraft versions
         }
 
-        // Retrieve statistics - calculate from player data when available
+        // Item tooltip must render item PDC stats, not player's equipped total.
         var name = pdc.get(NamespacedKey(plugin, "mh_name"), PersistentDataType.STRING) ?: item.type.name
-        
-        var damage = 0.0
-        var defense = 0.0
-        var mana = 0.0
-        var health = 0.0
-        
-        // If player exists, calculate stats from player data + equipment
-        if (player != null) {
-            val playerData = HeroPlayerManager.get()?.getPlayerData(player.uniqueId)
-            if (playerData != null) {
-                health = playerData.getTotalMaxHealth()
-                mana = playerData.getTotalMaxMana()
-                defense = playerData.getTotalDefense()
-                
-                // Calculate damage from weapon in main hand (vanilla attribute)
-                val mainHandItem = player.inventory.itemInMainHand
-                if (mainHandItem.hasItemMeta()) {
-                    val weaponMeta = mainHandItem.itemMeta
-                    val attributes = weaponMeta?.attributeModifiers
-                    if (attributes != null && attributes.size > 0) {
-                        // Get generic.attackDamage attribute
-                        val attackDamage = attributes.get(org.bukkit.attribute.Attribute.GENERIC_ATTACK_DAMAGE)
-                        if (attackDamage != null && attackDamage.size > 0) {
-                            damage = attackDamage[0].amount
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Fallback to PDC if player unavailable
-        if (player == null) {
-            damage = pdc.get(NamespacedKey(plugin, "mh_damage"), PersistentDataType.DOUBLE) ?: 0.0
-            defense = pdc.get(NamespacedKey(plugin, "mh_defense"), PersistentDataType.DOUBLE) ?: 0.0
-            mana = pdc.get(NamespacedKey(plugin, "mh_mana"), PersistentDataType.DOUBLE) ?: 0.0
-            health = pdc.get(NamespacedKey(plugin, "mh_health"), PersistentDataType.DOUBLE) ?: 0.0
-        }
+        val damage = pdc.get(NamespacedKey(plugin, "mh_damage"), PersistentDataType.DOUBLE) ?: 0.0
+        val defense = pdc.get(NamespacedKey(plugin, "mh_defense"), PersistentDataType.DOUBLE) ?: 0.0
+        val mana = pdc.get(NamespacedKey(plugin, "mh_mana"), PersistentDataType.DOUBLE) ?: 0.0
+        val health = pdc.get(NamespacedKey(plugin, "mh_health"), PersistentDataType.DOUBLE) ?: 0.0
         
         val levelReq = pdc.get(NamespacedKey(plugin, "mh_level_req"), PersistentDataType.INTEGER) ?: 0
         val classReq = pdc.get(NamespacedKey(plugin, "mh_class_req"), PersistentDataType.STRING) ?: "None"

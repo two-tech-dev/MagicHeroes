@@ -118,12 +118,18 @@ class MagicHeroesCommand(
         when (args.getOrNull(1)?.lowercase()) {
             "validate", "reload" -> {
                 val permission = if (args[1].equals("validate", true)) "magicheroes.item.validate" else "magicheroes.item.reload"
-                if (!sender.hasPermission(permission)) return deny(sender, permission)
+                if (!sender.hasPermission(permission)) {
+                    deny(sender, permission)
+                    return
+                }
                 val errors = plugin.itemService.reload()
                 sender.sendMessage(Component.text(if (errors.isEmpty()) "Item registry valid." else errors.joinToString(" | ")))
             }
             "give" -> {
-                if (!sender.hasPermission("magicheroes.item.give")) return deny(sender, "magicheroes.item.give")
+                if (!sender.hasPermission("magicheroes.item.give")) {
+                    deny(sender, "magicheroes.item.give")
+                    return
+                }
                 val target = args.getOrNull(2)?.let(Bukkit::getPlayerExact)
                 val id = args.getOrNull(3)
                 val amount = args.getOrNull(4)?.toIntOrNull() ?: 1
@@ -132,7 +138,10 @@ class MagicHeroesCommand(
                 } else sender.sendMessage(Component.text("Gave $amount $id to ${target.name}."))
             }
             "inspect" -> {
-                if (!sender.hasPermission("magicheroes.item.inspect")) return deny(sender, "magicheroes.item.inspect")
+                if (!sender.hasPermission("magicheroes.item.inspect")) {
+                    deny(sender, "magicheroes.item.inspect")
+                    return
+                }
                 if (player == null) sender.sendMessage(Component.text("Item inspection requires an in-game player."))
                 else {
                     val identity = plugin.itemService.inspect(player.inventory.itemInMainHand)
@@ -255,9 +264,8 @@ class MagicHeroesCommand(
     }
 
     private fun showQuests(player: Player) {
-        val data = HeroPlayerManager.get()?.getPlayerData(player.uniqueId)
-        val active = data?.questProgress?.keys?.joinToString().orEmpty()
-        player.sendMessage(Component.text("Active quests: ${active.ifBlank { "none" }}"))
+        val active = quests.progressLines(player)
+        player.sendMessage(Component.text(if (active.isEmpty()) "Active quests: none" else active.joinToString(" | ")))
     }
 
     private fun handleQuest(player: Player, args: Array<out String>) {
@@ -275,7 +283,17 @@ class MagicHeroesCommand(
             }
             "accept" -> player.sendMessage(Component.text(if (parties.accept(player)) "Joined party." else "No party invitation."))
             "leave" -> player.sendMessage(Component.text(if (parties.leave(player)) "Left party." else "You are not in a party."))
-            else -> player.sendMessage(Component.text("Usage: /mh party <invite|accept|leave> ..."))
+            "kick" -> {
+                val target = args.getOrNull(2)?.let(Bukkit::getPlayerExact)
+                player.sendMessage(Component.text(if (target != null && parties.kick(player, target)) "Kicked ${target.name}." else "Usage: /mh party kick <online-player>"))
+            }
+            "disband" -> player.sendMessage(Component.text(if (parties.disband(player)) "Party disbanded." else "Only party leader can disband."))
+            "chat" -> {
+                val message = args.drop(2).joinToString(" ")
+                if (message.isBlank()) player.sendMessage(Component.text("Usage: /mh party chat <message>"))
+                else parties.memberIds(player.uniqueId).mapNotNull(Bukkit::getPlayer).forEach { it.sendMessage(Component.text("[Party] ${player.name}: $message")) }
+            }
+            else -> player.sendMessage(Component.text("Usage: /mh party <invite|accept|leave|kick|disband|chat> ..."))
         }
     }
 
@@ -320,7 +338,7 @@ class MagicHeroesCommand(
             "item" -> complete(args, 1, listOf("give", "inspect", "validate", "reload", "craft", "loot"))
             "skill" -> complete(args, 1, listOf("cast", "bind", "unbind", "unlock", "tree", "reset"))
             "quest" -> complete(args, 1, listOf("start"))
-            "party" -> complete(args, 1, listOf("invite", "accept", "leave"))
+            "party" -> complete(args, 1, listOf("invite", "accept", "leave", "kick", "disband", "chat"))
             "waypoint" -> complete(args, 1, listOf("discover", "teleport", "list"))
             "attributes" -> complete(args, 1, listOf("show", "add", "reset"))
             "level" -> complete(args, 1, listOf("addexp"))

@@ -1,6 +1,7 @@
 package twotech.plugin.magicHeroes.quest
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -11,5 +12,15 @@ class QuestProgressTest {
         val progress = QuestProgress("first-blood")
         assertFalse(progress.advance(objective, 0))
         assertTrue(progress.advance(objective, 1))
+    }
+
+    @Test
+    fun `quest progress clamps to required amount`() {
+        val objective = QuestObjective("diamond", QuestObjectiveType.COLLECT, "DIAMOND", 3)
+        val progress = QuestProgress("collect-diamonds")
+
+        assertTrue(progress.advance(objective, 5))
+
+        assertEquals(3, progress.progress[objective.id])
     }
 }

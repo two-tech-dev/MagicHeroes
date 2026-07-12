@@ -20,7 +20,7 @@ class CombatMathTest {
     @Test
     fun `elemental resistance clamps safe range`() {
         assertEquals(50.0, CombatMath.elementalDamage(100.0, 0.5))
-        assertEquals(5.0, CombatMath.elementalDamage(100.0, 99.0))
+        assertEquals(5.0, CombatMath.elementalDamage(100.0, 99.0), 1e-12)
     }
 
     @Test

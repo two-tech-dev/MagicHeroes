@@ -155,19 +155,29 @@ Nền P4 hiện có:
 ### Quest, party và waypoint
 
 - Quest YAML registry.
-- Objective hiện có: kill/collect/mine/reach/interact model.
-- Demo quest: `first-blood`.
-- Quest start, kill progress, complete, EXP/item reward.
+- Objective hiện có: kill, collect, mine, reach, interact.
+- Demo quest: `first-blood`, `reach-spawn`.
+- Quest start, party-shared progress, complete, EXP/item reward.
+- Cấu hình: [`docs/quests.md`](docs/quests.md).
 - Party:
   - invite
   - accept
   - leave
-  - leader transfer khi leader leave.
+  - kick
+  - disband
+  - chat
+  - max size config
+  - leader transfer khi leader leave
+  - cấu hình: [`docs/parties.md`](docs/parties.md).
 - Waypoint service:
+  - YAML location config
   - register
   - discover
-  - teleport sau discovery
-  - profile persistence.
+  - safe teleport sau discovery
+  - Paper async teleport
+  - cooldown config
+  - profile persistence
+  - cấu hình: [`docs/waypoints.md`](docs/waypoints.md).
 
 ### API và integration
 
